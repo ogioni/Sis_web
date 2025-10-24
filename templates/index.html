@@ -1,0 +1,160 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lider Drive - Locadora de Veículos</title>
+    <style>
+        /* --- ESTILOS GERAIS --- */
+        body { 
+            font-family: sans-serif; text-align: center; padding: 0; 
+            background-color: #f4f4f4; margin: 0;
+            display: flex; flex-direction: column; min-height: 100vh;
+        }
+        .main-content { flex-grow: 1; }
+        .container { 
+            max-width: 800px; margin: 40px auto; background-color: #fff; 
+            padding: 40px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); 
+        }
+        .logo { margin-bottom: 30px; }
+        .logo img { max-width: 250px; height: auto; }
+        h1 { color: #333; margin-bottom: 10px; }
+        p { color: #666; line-height: 1.6; margin-bottom: 30px; }
+        .button-box { margin-top: 20px; }
+        .button-box a {
+            display: inline-block; padding: 15px 30px; margin: 10px;
+            font-size: 1.1em; text-decoration: none; border-radius: 5px;
+            font-weight: bold; transition: background-color 0.3s ease;
+        }
+        .acesso-restrito { background-color: #0056b3; color: white; }
+        .acesso-restrito:hover { background-color: #004494; }
+        .ficha-cadastro { background-color: #38a169; color: white; }
+        .ficha-cadastro:hover { background-color: #2f855a; }
+
+        /* --- ESTILOS ATUALIZADOS DO FOOTER --- */
+        .footer {
+            background-color: #0d2c4f; color: #ffffff;
+            padding: 20px 0; width: 100%; margin-top: auto;
+        }
+        .footer-content {
+            display: flex; justify-content: space-between; align-items: center;
+            max-width: 1200px; margin: 0 auto; padding: 0 20px;
+            flex-wrap: wrap;
+        }
+        /* Logo Lider Drive (Maior) */
+        .footer-logo img {
+            max-width: 150px; height: auto;
+        }
+        
+        /* --- MUDANÇAS AQUI (Redes Sociais) --- */
+        .footer-social {
+            text-align: center; /* Centraliza o texto e os ícones */
+            margin: 10px 20px;
+        }
+        .footer-social p { /* Texto "SIGA NOSSAS..." */
+            margin: 0 0 10px 0; /* Adiciona espaço ABAIXO do texto */
+            font-size: 0.9em;
+            font-weight: bold;
+            color: #fff;
+            white-space: nowrap;
+        }
+        .footer-social .social-icons {
+            /* Div que segura os ícones */
+            display: block; /* Garante que fique abaixo */
+        }
+        .footer-social .social-icons a img { /* Ícones (Maiores) */
+            height: 32px; /* Aumenta o tamanho (era 24px) */
+            width: 32px;
+            margin: 0 5px; /* Espaço entre os ícones */
+            vertical-align: middle;
+        }
+        /* --- FIM DAS MUDANÇAS (Redes Sociais) --- */
+
+        /* Links de Texto (Sem mudança) */
+        .footer-links {
+            display: flex; flex-direction: column;
+            align-items: flex-start; flex-grow: 1;
+            margin: 10px 20px;
+        }
+        .footer-links .links-row-1,
+        .footer-links .links-row-2 { display: flex; flex-wrap: wrap; }
+        .footer-links a {
+            color: #fff; text-decoration: none; font-size: 0.8em;
+            margin: 3px 10px; font-weight: bold; white-space: nowrap;
+        }
+        .footer-links a:hover { text-decoration: underline; }
+        .footer-links .links-row-2 { margin-top: 5px; }
+        /* Separador (Sem mudança) */
+        .footer-separator {
+            border-left: 1px solid #ffffff;
+            height: 40px; margin: 0 20px;
+        }
+
+        /* --- MUDANÇA AQUI (Logo Grupo Lider) --- */
+        .footer-group-logo img {
+            height: 50px; /* Aumenta o tamanho (era 40px) */
+            width: auto;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="main-content">
+        <div class="container">
+            <div class="logo">
+                <img src="{% static 'logo.png' %}" alt="Logotipo Lider Drive">
+            </div>
+            <h1>Bem-vindo à Lider Drive</h1>
+            <p>Sua plataforma completa para gestão de frotas e cadastro.</p>
+
+            <div class="button-box">
+                <a href="{% url 'admin:login' %}" class="acesso-restrito">Acesso ao Sistema</a>
+                <a href="#" class="ficha-cadastro">Ficha Cadastral (Em Breve)</a> 
+            </div>
+        </div>
+    </div>
+
+    <footer class="footer">
+        <div class="footer-content">
+            
+            <div class="footer-logo">
+                <a href="https://www.meuliderdrive.com.br" target="_blank">
+                    <img src="{% static 'logo.png' %}" alt="Lider Drive Logo">
+                </a>
+            </div>
+
+            <div class="footer-social">
+                <p>SIGA NOSSAS REDES SOCIAIS</p>
+                <div class="social-icons">
+                    <a href="https://www.facebook.com/meuliderdrive" target="_blank">
+                        <img src="{% static 'fb.png' %}" alt="Facebook">
+                    </a>
+                    <a href="https://www.instagram.com/meuliderdrive/" target="_blank">
+                        <img src="{% static 'ig.png' %}" alt="Instagram">
+                    </a>
+                </div>
+            </div>
+            <div class="footer-links">
+                <div class="links-row-1">
+                    <a href="https://www.meuliderdrive.com.br/condicoes-e-avisos-legais" target="_blank">CONDIÇÕES E AVISOS LEGAIS</a>
+                    <a href="https://drive.google.com/file/d/15RiXncGkNkA0M07IBJePzOQpBH_X4bHR/view?usp=sharing" target="_blank">POLÍTICA DE PRIVACIDADE</a>
+                    <a href="https://www.grupolider.com.br/fale-conosco/canal-de-privacidade-lgpd" target="_blank">CANAL DE PRIVACIDADE</a>
+                </div>
+                <div class="links-row-2">
+                    <a href="https://cdn.dealerspace.ai/lider/arquivos/codigo%20de%20%C3%A9tica%20A4_v2%20(op%C3%A7%C3%A3o%202).pdf" target="_blank">CÓDIGO DE ÉTICA</a>
+                </div>
+            </div>
+
+            <div class="footer-separator"></div>
+
+            <div class="footer-group-logo">
+                <a href="https://www.grupolider.com.br/" target="_blank">
+                    <img src="{% static 'GP_logo.png' %}" alt="Grupo Lider Logo">
+                </a>
+            </div>
+
+        </div>
+    </footer>
+    </body>
+</html>

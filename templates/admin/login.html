@@ -5,127 +5,80 @@
 <link rel="stylesheet" href="{% static "admin/css/login.css" %}">
 {{ form.media }}
 <style>
-/* --- NOSSAS CUSTOMIZAÇÕES FINAIS --- */
-  /* Remove a classe dark-mode no BODY para garantir */
-  body.dark-mode, 
-  body.dark-mode #container,
-  body.dark-mode #content-main,
-  body.dark-mode #login-form {
-      /* Estas regras garantem que o fundo escuro do django seja anulado */
-      background: #ffffff !important; 
-      color: #333 !important;
+  /* --- ESTILOS VISUAIS (COM BOTÃO DE TEMA E LINK VOLTAR) --- */
+  html, body {
+    height: 100%; margin: 0; padding: 0;
+    font-family: sans-serif;
+    /* Tema padrão define background */
   }
   body.login {
-    background: #ffffff;
-    display: flex;
-    justify-content: center;
-    align-items: center;
+    display: flex; justify-content: center; align-items: center;
     min-height: 100vh;
-    font-family: sans-serif;
   }
   #header { display: none; }
 
   #container {
-    width: 100%;
-    max-width: 450px;
-    margin: 0 auto;
+    width: 100%; max-width: 450px; margin: 0 auto;
+    position: relative; /* Referência para o botão de tema */
   }
-  #content {
-    border: none; 
-    padding: 0;
-  }
+  #content { border: none; padding: 0; }
+
   #login-form {
-      background-color: #f8f8f8;
-      padding: 2.5rem;
-      border-radius: 8px;
-      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-      margin-bottom: 1.5rem;
+      padding: 2.5rem; border-radius: 8px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.1); margin-bottom: 1rem; /* Reduzido espaço antes dos links */
+      /* Tema padrão define background */
   }
 
+  /* Branding */
   #branding {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      background: none;
-      box-shadow: none;
-      border: none;
-      margin-bottom: 2rem;
+      display: flex; flex-direction: column; align-items: center;
+      background: none; box-shadow: none; border: none; margin-bottom: 2rem;
   }
-  #branding img {
-      width: 200px;
-      height: auto;
-      margin-bottom: 15px;
-  }
-  #branding .login-title {
-      color: #333;
-      font-size: 1.3em;
-      font-weight: normal;
-      margin: 0;
-  }
+  #branding img { width: 200px; height: auto; margin-bottom: 15px; }
+  #branding .login-title { font-size: 1.3em; font-weight: normal; margin: 0; } /* Tema define cor */
 
   /* Labels e Inputs */
-  .form-row {
-      margin-bottom: 1.5rem;
-  }
+  .form-row { margin-bottom: 1.5rem; }
   .form-row label {
-      font-size: 1em;
-      text-align: left;
-      display: block;
-      width: 100%;
-      margin-bottom: 5px;
-      color: #555;
-      font-weight: bold;
+      font-size: 1em; text-align: left; display: block; width: 100%;
+      margin-bottom: 5px; font-weight: bold; /* Tema define cor */
   }
   .form-row input[type="text"],
   .form-row input[type="password"] {
-      width: 100%;
-      padding: 12px;
-      border: 1px solid #ccc;
-      border-radius: 4px;
-      box-sizing: border-box;
+      width: 100%; padding: 12px; border: 1px solid #ccc;
+      border-radius: 4px; box-sizing: border-box; /* Tema define cores */
   }
 
-  /* Mensagens de erro */
+  /* Erros */
   .errornote {
-      color: #ba2121;
-      background-color: #ffdddd;
-      border: 1px solid #ba2121;
-      border-radius: 4px;
-      padding: 10px;
-      margin-bottom: 1rem;
-      text-align: center;
+      color: #ba2121; background-color: #ffdddd; border: 1px solid #ba2121;
+      border-radius: 4px; padding: 10px; margin-bottom: 1rem; text-align: center;
   }
 
   /* Botão */
   .submit-row input[type="submit"] {
-      width: 100%;
-      padding: 12px;
-      font-size: 1.1em;
-      margin-top: 1rem;
-      background-color: #0056b3;
-      border: none;
-      border-radius: 4px;
-      color: white;
-      cursor: pointer;
-      font-weight: bold;
+      width: 100%; padding: 12px; font-size: 1.1em; margin-top: 1rem;
+      background-color: #0056b3; border: none; border-radius: 4px;
+      color: white; cursor: pointer; font-weight: bold;
   }
-  .submit-row input[type="submit"]:hover {
-      background-color: #004494;
-  }
+  .submit-row input[type="submit"]:hover { background-color: #004494; }
 
-  /* Link de Esqueci Senha */
-  .password-reset-link-outside {
-      text-align: center;
-      margin-top: 1rem;
-      font-size: 0.9em;
+  /* Links abaixo do form */
+  .password-reset-link-outside, .back-to-home-link { /* Estilo comum para os links */
+      text-align: center; margin-top: 0.8rem; font-size: 0.9em;
   }
-  .password-reset-link-outside a {
-      color: #0056b3;
-      text-decoration: none;
+  .password-reset-link-outside a, .back-to-home-link a {
+      color: #0056b3; text-decoration: none;
   }
-   .password-reset-link-outside a:hover {
+  .password-reset-link-outside a:hover, .back-to-home-link a:hover {
       text-decoration: underline;
   }
+
+  /* Posicionamento do Botão de Tema */
+  .theme-toggle-container {
+      position: absolute; top: 10px; right: 10px; z-index: 100;
+  }
+  .theme-toggle { /* Estilo padrão do botão do Django */ }
 </style>
 {% endblock %}
 
@@ -138,6 +91,11 @@
 {% block breadcrumbs %}{% endblock %}
 
 {% block content %}
+{# Botão de tema posicionado #}
+<div class="theme-toggle-container">
+    {% include "admin/color_theme_toggle.html" %}
+</div>
+
 <div id="content-main">
 
   {% if form.errors and not form.non_field_errors %}
@@ -172,8 +130,15 @@
 </div>
 
 <div class="password-reset-link-outside">
-  {# CORREÇÃO FINAL FINAL: Usando o nome padrão GLOBAL 'password_reset' #}
   <a href="{% url 'password_reset' %}">{% translate 'Esqueci minha senha' %}</a>
 </div>
+
+{# --- NOVO: Link Voltar para o Início --- #}
+<div class="back-to-home-link">
+  {# A URL 'home' foi definida no config/urls.py para o index.html #}
+  <a href="{% url 'home' %}">{% translate 'Voltar para o Início' %}</a>
+</div>
+{# --- FIM NOVO --- #}
+
 
 {% endblock %}
