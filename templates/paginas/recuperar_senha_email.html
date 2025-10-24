@@ -1,7 +1,0 @@
-Olá, {{ user.username }},
-
-Clique no link abaixo para criar uma nova senha:
-
-{{ protocol}}://{{ domain }}{% url 'users:recuperar_senha_confirm' uidb64=user.pk|urlencode token=token %}
-
-Se você não solicitou isso, pode ignorar este email.

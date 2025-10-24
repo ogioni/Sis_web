@@ -2,7 +2,7 @@
 venv/
 
 # Ignorar o Banco de Dados (cada máquina terá o seu)
-db.sqlite3
+# db.sqlite3
 
 # Ignorar arquivos temporários do Python
 __pycache__/

@@ -2,42 +2,39 @@ from django.shortcuts import redirect
 from django.urls import reverse
 from django.utils.deprecation import MiddlewareMixin
 from django.contrib.auth.models import Group
-from django.conf import settings # Importa o settings para pegar a LOGIN_URL
+from django.conf import settings 
 
 class MinhaPasswordChangeMiddleware(MiddlewareMixin):
     
     def process_request(self, request):
         
-        # 1. Ignora quem não está logado ou é Superusuário
         if not request.user.is_authenticated or request.user.is_superuser:
             return None
         
-        # 2. Define as URLs que devem ser excluídas do bloqueio (para evitar loop)
         try:
-            url_mudar_senha = reverse('users:mudar_senha')
-            url_logout = reverse('users:logout') 
+            # --- MUDANÇA AQUI ---
+            url_change_password = reverse('change_password') # NOVO NOME DA URL
+            url_logout = reverse('logout') # Nome global agora
         except Exception:
-            # Caso o Django ainda não tenha carregado as rotas, retorna None
+            # Se as URLs ainda não carregaram (raro), ignora
             return None 
 
         excluded_urls = [
-            settings.LOGIN_URL,  # A URL que o Django vai tentar te mandar
-            url_mudar_senha,     # A página que queremos que ele acesse
-            url_logout,          # A opção de sair
-            '/'                  # Permite o acesso à página inicial (opcional, mas seguro)
+            settings.LOGIN_URL,  
+            url_change_password, # Usa a variável com novo nome
+            url_logout,          
+            '/'                  
         ]
         
-        # Se o usuário está tentando acessar uma página permitida, deixe-o.
         if request.path in excluded_urls:
             return None
         
-        # 3. Lógica Principal: Se o usuário é do grupo "Deve Mudar Senha"
         try:
             if request.user.groups.filter(name='Deve Mudar Senha').exists():
-                # Redireciona à força para a página de mudar senha
-                return redirect(url_mudar_senha)
+                # --- MUDANÇA AQUI ---
+                return redirect(url_change_password) # Redireciona para a URL com novo nome
         except Group.DoesNotExist:
-            return None # O grupo não existe no banco, ignora
+            return None 
         except Exception:
             return None
 

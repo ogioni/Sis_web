@@ -58,15 +58,10 @@
 
         <div class="actions">
             <button type="submit">Entrar</button>
-            Olá, {{ user.username }},
-
-Clique no link abaixo para criar uma nova senha:
-
-{{ protocol}}://{{ domain }}{% url 'users:recuperar_senha' uidb64=uidb64 token=token %}
-
-Se você não solicitou isso, pode ignorar este email.
+            {# Link CORRETO para a recuperação de senha padrão #}
+            <a href="{% url 'password_reset' %}">Esqueci minha senha</a> 
         </div>
     </form>
 
 </body>
-</html>
+</html> 

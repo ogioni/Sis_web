@@ -1,26 +1,28 @@
-"""
-URL configuration for config project.
-
-The `urlpatterns` list routes URLs to views. For more information please see:
-    https://docs.djangoproject.com/en/5.2/topics/http/urls/
-Examples:
-Function views
-    1. Add an import:  from my_app import views
-    2. Add a URL to urlpatterns:  path('', views.home, name='home')
-Class-based views
-    1. Add an import:  from other_app.views import Home
-    2. Add a URL to urlpatterns:  path('', Home.as_view(), name='home')
-Including another URLconf
-    1. Import the include() function: from django.urls import include, path
-    2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
-"""
 from django.contrib import admin
 from django.urls import path, include
-from django.urls import path
 from django.views.generic.base import RedirectView
 
+# Personalização do Título do Admin
+admin.site.site_header = "Lider Drive - Sistema de Gestão"
+admin.site.site_title = "Lider Drive Gestão"
+admin.site.index_title = "Bem-vindo ao Sistema Lider Drive"
+
 urlpatterns = [
-    path('', RedirectView.as_view(url='/contas/login/', permanent=False)), # <--- NOVA LINHA
+    # Rota para a RAIZ do site (redireciona para /admin/)
+    path('', RedirectView.as_view(url='/admin/', permanent=False)), 
+    
+    # Rota padrão do Admin
     path('admin/', admin.site.urls),
-    path('contas/', include('users.urls')),
+    
+    # Nossas rotas de autenticação CUSTOMIZADAS (login, mudar_senha)
+    # E as rotas PADRÃO de recuperação de senha que apontam para os templates em /registration/
+    path('contas/', include('users.urls')), 
+
+    # --- LINHA NOVA E IMPORTANTE ---
+    # Inclui TODAS as URLs padrão de autenticação do Django (login, logout, password_reset, etc.)
+    # Elas também usarão os templates em /registration/ por padrão
+    path('contas/', include('django.contrib.auth.urls')), 
+    
+    # Rota para clientes 
+    path('clientes/', include('clientes.urls')), 
 ]

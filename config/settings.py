@@ -33,7 +33,8 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'django.contrib.sites', 
     'users', 
-    'anymail', # Novo: Para integração segura de E-mail (SendGrid, Mailgun, etc.)
+    'anymail',
+    'clientes', # Novo: Para integração segura de E-mail (SendGrid, Mailgun, etc.)
 ]
 
 # ID do Site (para montar links de e-mail)
@@ -156,3 +157,5 @@ ANYMAIL = {
 }
 DEFAULT_FROM_EMAIL = 'seu-email-aqui@dominio.com'
 SERVER_EMAIL = DEFAULT_FROM_EMAIL # Usado para mensagens de erro do sistema
+
+#Teste de Backup
