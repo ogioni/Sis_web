@@ -1,38 +1,39 @@
-from django.contrib.auth.views import PasswordChangeView
+from django.contrib.auth.views import PasswordChangeView, LoginView, PasswordResetView
 from django.urls import reverse_lazy
 from django.contrib.auth.models import Group
+from django.utils.deprecation import MiddlewareMixin
+from django.contrib.auth.forms import PasswordResetForm
+from django.contrib.sites.shortcuts import get_current_site
 
-# Esta é a nossa "View". Estamos herdando (usando) a lógica pronta do Django
-# e apenas dizendo a ela 2 coisas: qual template usar e para onde ir depois.
+# Views de Autenticação
+
+class MinhaLoginView(LoginView):
+    template_name = 'paginas/login.html'
+    redirect_authenticated_user = True
+    next_page = reverse_lazy('admin:index') 
 
 class MinhaPasswordChangeView(PasswordChangeView):
-
-    # 1. Diga ao Django para usar o nosso HTML personalizado
     template_name = 'paginas/mudar_senha.html'
+    success_url = reverse_lazy('admin:index') 
 
-    # 2. Diga ao Django para onde redirecionar o usuário DEPOIS 
-    #    que ele mudar a senha com sucesso.
-    #    Vamos mandá-lo para o painel de admin por enquanto.
-    success_url = reverse_lazy('admin:index')
-
-    # 2. ADICIONE TODO O MÉTODO ABAIXO
     def form_valid(self, form):
-        # Este método é chamado QUANDO o formulário é válido,
-        # ANTES de salvar a senha e redirecionar.
-
+        # Lógica para remover o usuário do grupo "Deve Mudar Senha"
         try:
-            # Pega o usuário que está logado
             usuario = self.request.user
-
-            # Pega o grupo de bloqueio
             grupo = Group.objects.get(name='Deve Mudar Senha')
-
-            # Remove o usuário do grupo!
             usuario.groups.remove(grupo)
-
         except Group.DoesNotExist:
-            # Se o grupo não existir, não faz nada
             pass
-
-        # Continua com o processo normal de salvar a senha
+        
         return super().form_valid(form)
+
+# VIEW DE RECUPERAÇÃO PERSONALIZADA (CORREÇÃO DE CONTEXTO)
+class MinhaPasswordResetView(PasswordResetView):
+    form_class = PasswordResetForm 
+    
+    # Opcional, mas ajuda a garantir o contexto do e-mail
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        # Garante que o template do e-mail tenha acesso correto ao Site
+        context['site_name'] = get_current_site(self.request).name
+        return context

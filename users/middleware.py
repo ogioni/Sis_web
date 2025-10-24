@@ -1,44 +1,44 @@
 from django.shortcuts import redirect
 from django.urls import reverse
+from django.utils.deprecation import MiddlewareMixin
 from django.contrib.auth.models import Group
+from django.conf import settings # Importa o settings para pegar a LOGIN_URL
 
-class ForcePasswordChangeMiddleware:
-    def __init__(self, get_response):
-        self.get_response = get_response
-        # Qualquer configuração única (na inicialização) vai aqui.
+class MinhaPasswordChangeMiddleware(MiddlewareMixin):
+    
+    def process_request(self, request):
+        
+        # 1. Ignora quem não está logado ou é Superusuário
+        if not request.user.is_authenticated or request.user.is_superuser:
+            return None
+        
+        # 2. Define as URLs que devem ser excluídas do bloqueio (para evitar loop)
+        try:
+            url_mudar_senha = reverse('users:mudar_senha')
+            url_logout = reverse('users:logout') 
+        except Exception:
+            # Caso o Django ainda não tenha carregado as rotas, retorna None
+            return None 
 
-    def __call__(self, request):
-        # --- O CÓDIGO RODA AQUI EM TODA REQUISIÇÃO ---
+        excluded_urls = [
+            settings.LOGIN_URL,  # A URL que o Django vai tentar te mandar
+            url_mudar_senha,     # A página que queremos que ele acesse
+            url_logout,          # A opção de sair
+            '/'                  # Permite o acesso à página inicial (opcional, mas seguro)
+        ]
+        
+        # Se o usuário está tentando acessar uma página permitida, deixe-o.
+        if request.path in excluded_urls:
+            return None
+        
+        # 3. Lógica Principal: Se o usuário é do grupo "Deve Mudar Senha"
+        try:
+            if request.user.groups.filter(name='Deve Mudar Senha').exists():
+                # Redireciona à força para a página de mudar senha
+                return redirect(url_mudar_senha)
+        except Group.DoesNotExist:
+            return None # O grupo não existe no banco, ignora
+        except Exception:
+            return None
 
-        # 1. Verifica se o usuário está logado
-        if request.user.is_authenticated:
-
-            # 2. Tenta encontrar o nosso grupo "marcador"
-            try:
-                grupo_forcar_mudanca = Group.objects.get(name='Deve Mudar Senha')
-            except Group.DoesNotExist:
-                # Se o grupo não existir, o middleware não faz nada.
-                return self.get_response(request)
-
-            # 3. Verifica se o usuário logado PERTENCE a esse grupo
-            if grupo_forcar_mudanca in request.user.groups.all():
-
-                # 4. Pega o caminho da página que o usuário está tentando acessar
-                caminho_atual = request.path
-
-                # 5. Define quais páginas são "permitidas" (para evitar um loop infinito)
-                url_mudar_senha = reverse('users:mudar_senha')
-                url_logout = reverse('admin:logout') # O link de "Sair" do admin
-
-                # Se o usuário está no grupo E NÃO ESTÁ tentando acessar
-                # a página de mudar senha ou de sair, nós o FORÇAMOS.
-                if caminho_atual not in [url_mudar_senha, url_logout]:
-
-                    # Não podemos deixar ele acessar o /admin, /clientes, etc.
-                    # Redireciona ele para a nossa página!
-                    return redirect('users:mudar_senha')
-
-        # Se o usuário não está logado, ou não está no grupo,
-        # apenas continue normalmente.
-        response = self.get_response(request)
-        return response
+        return None

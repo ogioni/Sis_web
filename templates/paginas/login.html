@@ -4,9 +4,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Recuperar Senha</title>
+    <title>Login no Sistema</title>
+
     <style>
-        /* Copiar estilos do login.html */
         body { 
             font-family: sans-serif; 
             display: flex; 
@@ -26,31 +26,47 @@
         .form-field { margin-bottom: 1rem; }
         .form-field label { display: block; margin-bottom: 5px; }
         .form-field input { width: 95%; padding: 8px; }
+        .actions { display: flex; justify-content: space-between; align-items: center; margin-top: 1.5rem; }
         button { padding: 10px 15px; background-color: #007bff; color: white; border: none; cursor: pointer; }
         .errorlist { color: red; list-style: none; padding: 0; margin-bottom: 1rem; }
-        .message { margin-top: 1rem; text-align: center; }
     </style>
 </head>
 <body>
+
     <form method="POST">
         {% csrf_token %} 
 
         <div class="logo-container">
             <img src="{% static 'logo.png' %}" alt="Logotipo do Sistema" width="150">
-            <h2>Recuperar Senha</h2>
+            <h2>Login no Sistema</h2>
         </div>
 
-        <p>Digite seu endereço de e-mail. Enviaremos um link para você redefinir sua senha.</p>
+        {% if form.errors %}
+            <ul class="errorlist">
+                <li>Usuário ou senha inválidos. Tente novamente.</li>
+            </ul>
+        {% endif %}
 
         <div class="form-field">
-            {{ form.as_p }}
+            <label for="id_username">Usuário:</label>
+            {{ form.username }}
+        </div>
+        <div class="form-field">
+            <label for="id_password">Senha:</label>
+            {{ form.password }}
         </div>
 
-        <button type="submit">Enviar link</button>
+        <div class="actions">
+            <button type="submit">Entrar</button>
+            Olá, {{ user.username }},
 
-        <div class="message">
-            <a href="{% url 'users:login' %}">Voltar para o Login</a>
+Clique no link abaixo para criar uma nova senha:
+
+{{ protocol}}://{{ domain }}{% url 'users:recuperar_senha' uidb64=uidb64 token=token %}
+
+Se você não solicitou isso, pode ignorar este email.
         </div>
     </form>
+
 </body>
 </html>

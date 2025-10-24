@@ -3,10 +3,10 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Recuperar Senha</title>
+    <meta name="viewport" content="width=device-width, initial-width=1.0">
+    <title>Definir Nova Senha</title>
     <style>
-        /* Copiar estilos do login.html */
+        /* Estilos simplificados para não ter erro */
         body { 
             font-family: sans-serif; 
             display: flex; 
@@ -34,19 +34,23 @@
 <body>
     <form method="POST">
         {% csrf_token %} 
-
+        
         <div class="logo-container">
             <img src="{% static 'logo.png' %}" alt="Logotipo do Sistema" width="150">
-            <h2>Recuperar Senha</h2>
+            <h2>Definir Nova Senha</h2>
         </div>
+        
+        {% if validlink %}
+            <p>Sua senha foi redefinida com sucesso. Defina uma nova senha forte.</p>
 
-        <p>Digite seu endereço de e-mail. Enviaremos um link para você redefinir sua senha.</p>
+            <div class="form-field">
+                {{ form.as_p }}
+            </div>
 
-        <div class="form-field">
-            {{ form.as_p }}
-        </div>
-
-        <button type="submit">Enviar link</button>
+            <button type="submit">Salvar Nova Senha</button>
+        {% else %}
+            <p>Este link é inválido, pois o tempo expirou ou já foi usado. Por favor, solicite uma nova redefinição.</p>
+        {% endif %}
 
         <div class="message">
             <a href="{% url 'users:login' %}">Voltar para o Login</a>
