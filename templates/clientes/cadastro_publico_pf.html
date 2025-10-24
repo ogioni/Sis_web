@@ -1,0 +1,154 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crie sua Conta - Lider Drive</title>
+    <style>
+        body { font-family: sans-serif; background-color: #f4f4f4; margin: 0; padding: 20px;}
+        .container { max-width: 900px; margin: 20px auto; background-color: #fff; padding: 2.5rem; border-radius: 8px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+        .branding { display: flex; flex-direction: column; align-items: center; margin-bottom: 2rem; }
+        .branding img { width: 150px; margin-bottom: 15px; }
+        .branding .auth-title { color: #0056b3; font-size: 1.5em; font-weight: bold; margin: 0; }
+        
+        fieldset { border: 1px solid #ccc; border-radius: 4px; padding: 20px; margin-bottom: 20px; }
+        legend { font-weight: bold; font-size: 1.2em; color: #0056b3; padding: 0 10px; }
+        
+        /* Grid Principal (3 Colunas) */
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; }
+        
+        .form-row { display: flex; flex-direction: column; }
+        .form-row label { font-size: 0.9em; margin-bottom: 5px; color: #555; font-weight: bold; text-align: left; }
+        .form-row input, .form-row select { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+        .submit-row { text-align: center; margin-top: 20px; }
+        .submit-row button { padding: 12px 30px; font-size: 1.1em; background-color: #38a169; color: white; border: none; border-radius: 44px; cursor: pointer; font-weight: bold; }
+        
+        .full-width { grid-column: 1 / -1; }
+        .two-thirds { grid-column: span 2; }
+        .errorlist { color: red; list-style: none; padding: 0; margin-top: 5px; font-size: 0.9em; }
+        .back-link { text-align: center; margin-top: 1.5rem; font-size: 0.9em; }
+        .back-link a { color: #0056b3; text-decoration: none; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <form method="POST">{% csrf_token %}
+            
+            <div class="branding">
+                <img src="{% static 'logo.png' %}" alt="Logotipo Lider Drive">
+                <p class="auth-title">Crie sua Conta - 1/3</p>
+            </div>
+
+            <fieldset>
+                <legend>Dados Pessoais (Fase 1)</legend>
+                <div class="form-grid">
+                    
+                    {# LINHA 1: NOME COMPLETO (FULL WIDTH) #}
+                    <div class="form-row full-width">
+                        <label>{{ form.nome_completo.label }}:</label>
+                        {{ form.nome_completo }}
+                        {{ form.nome_completo.errors }}
+                    </div>
+                    
+                    {# LINHA 2: DATA NASCIMENTO - CPF - RG (3 COLUNAS) #}
+                    <div class="form-row">
+                        <label>{{ form.data_nascimento.label }}:</label>
+                        {{ form.data_nascimento }}
+                        {{ form.data_nascimento.errors }}
+                    </div>
+                    <div class="form-row">
+                        <label>{{ form.cpf.label }}:</label>
+                        {{ form.cpf }}
+                        {{ form.cpf.errors }}
+                    </div>
+                    <div class="form-row">
+                        <label>{{ form.rg.label }}:</label>
+                        {{ form.rg }}
+                        {{ form.rg.errors }}
+                    </div>
+
+                    {# LINHA 3: ORGAO EXPEDIDOR - UF RG - ESTADO CIVIL (3 COLUNAS) #}
+                    <div class="form-row">
+                        <label>{{ form.rg_orgao_expeditor.label }}:</label>
+                        {{ form.rg_orgao_expeditor }}
+                        {{ form.rg_orgao_expeditor.errors }}
+                    </div>
+                    <div class="form-row">
+                        <label>{{ form.rg_uf.label }}:</label>
+                        {{ form.rg_uf }}
+                        {{ form.rg_uf.errors }}
+                    </div>
+                    <div class="form-row">
+                        <label>{{ form.estado_civil.label }}:</label>
+                        {{ form.estado_civil }}
+                        {{ form.estado_civil.errors }}
+                    </div>
+
+                    {# LINHA 4: NOME MAE - NOME PAI (NOVAS DIVS DE 2 COLUNAS) #}
+                    <div class="form-row full-width" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                        <div class="form-row">
+                            <label>{{ form.nome_mae.label }}:</label>
+                            {{ form.nome_mae }}
+                            {{ form.nome_mae.errors }}
+                        </div>
+                        <div class="form-row">
+                            <label>{{ form.nome_pai.label }}:</label>
+                            {{ form.nome_pai }}
+                            {{ form.nome_pai.errors }}
+                        </div>
+                    </div>
+
+
+                    {# LINHA 5: TELEFONE FIXO - CELULAR (NOVAS DIVS DE 2 COLUNAS) #}
+                    <div class="form-row full-width" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                        <div class="form-row">
+                            <label>{{ form.telefone.label }}:</label>
+                            {{ form.telefone }}
+                            {{ form.telefone.errors }}
+                        </div>
+                        <div class="form-row">
+                            <label>{{ form.celular.label }}:</label>
+                            {{ form.celular }}
+                            {{ form.celular.errors }}
+                        </div>
+                    </div>
+
+
+                    {# LINHA 6: EMAIL - CONFIRMAR EMAIL (NOVAS DIVS DE 2 COLUNAS) #}
+                    <div class="form-row full-width" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                        <div class="form-row">
+                            <label>{{ form.email.label }}:</label>
+                            {{ form.email }}
+                            {{ form.email.errors }}
+                        </div>
+                        <div class="form-row">
+                            <label>{{ form.email_confirm.label }}:</label>
+                            {{ form.email_confirm }}
+                            {{ form.email_confirm.errors }}
+                        </div>
+                    </div>
+                    
+                </div>
+            </fieldset>
+
+            <div class="submit-row" style="text-align: center;">
+                <button type="submit">Criar Conta e Validar E-mail</button>
+            </div>
+
+        </form>
+
+        <div class="back-link">
+            <a href="{% url 'home' %}">Voltar para o Início</a>
+        </div>
+    </div>
+    
+    {# --- SCRIPTS DE MÁSCARA (NECESSÁRIOS) --- #}
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.mask/1.14.16/jquery.mask.min.js"></script>
+    <script src="{% static 'js/mask.js' %}"></script>
+    {# --- FIM SCRIPTS --- #}
+
+</body>
+</html>

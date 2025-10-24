@@ -24,5 +24,5 @@ urlpatterns = [
     path('contas/', include('users.urls')), 
         
     # Rota para clientes (Ainda comentada)
-    # path('clientes/', include('clientes.urls')), 
+    path('clientes/', include('clientes.urls')), 
 ]

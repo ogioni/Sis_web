@@ -25,8 +25,10 @@ INSTALLED_APPS = [
     'users', 
     'anymail', 
     'clientes.apps.ClientesConfig',
+    #'django_js_asset.apps.DjangoJsAssetConfig',   # <--- Garanta que esta linha existe (e não está comentada)
+    #'django_js_asset',
+    'widget_tweaks',
 ]
-
 SITE_ID = 1 
 
 MIDDLEWARE = [

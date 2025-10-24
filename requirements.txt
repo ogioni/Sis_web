@@ -5,6 +5,8 @@ charset-normalizer==3.4.4
 cryptography==46.0.3
 Django==5.2.7
 django-anymail==13.1
+django-js-asset==3.1.2
+django-widget-tweaks==1.5.0
 idna==3.11
 MarkupSafe==3.0.3
 pycparser==2.23

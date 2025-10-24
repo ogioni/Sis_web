@@ -7,6 +7,12 @@ class Cliente(models.Model):
     nome_completo = models.CharField(max_length=200, verbose_name="Nome Completo")
     data_nascimento = models.DateField(verbose_name="Data de Nascimento", null=True, blank=True)
     rg = models.CharField(max_length=20, verbose_name="RG", blank=True, null=True)
+    
+    # --- NOVOS CAMPOS PARA O CADASTRO SIMPLES ---
+    rg_orgao_expeditor = models.CharField(max_length=20, verbose_name="Órgão Expedidor", blank=True, null=True)
+    rg_uf = models.CharField(max_length=2, verbose_name="UF RG", blank=True, null=True)
+    # --- FIM NOVOS CAMPOS ---
+    
     cpf = models.CharField(max_length=14, unique=True, verbose_name="CPF") # CPF/CNPJ (PF)
     cnh = models.CharField(max_length=20, verbose_name="Nº CNH", blank=True, null=True)
     validade_cnh = models.DateField(verbose_name="Validade CNH", null=True, blank=True)
@@ -49,7 +55,7 @@ class Cliente(models.Model):
     ref_bancaria_conta = models.CharField(max_length=20, verbose_name="Ref. Bancária: Conta", blank=True, null=True)
 
     # ----------------------------------------
-    # 4. CONDUTOR ADICIONAL (Simplificado no mesmo modelo)
+    # 4. CONDUTOR ADICIONAL
     # ----------------------------------------
     condutor_nome = models.CharField(max_length=200, verbose_name="Condutor Adicional: Nome", blank=True, null=True)
     condutor_data_nasc = models.DateField(verbose_name="Condutor Adicional: Data Nasc.", null=True, blank=True)
@@ -75,9 +81,8 @@ class Cliente(models.Model):
     )
 
     class Meta:
-        # --- MUDANÇAS AQUI ---
-        verbose_name = "Customer"        # Nome Singular
-        verbose_name_plural = "Customers"  # Nome Plural
+        verbose_name = "Customer"
+        verbose_name_plural = "Customers"
         ordering = ['nome_completo'] 
 
     def __str__(self):

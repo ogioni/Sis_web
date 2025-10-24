@@ -1,8 +1,11 @@
 from django.urls import path
-from . import views # Importaremos as views depois
+from . import views
 
-app_name = 'clientes' # Define o namespace do app
+app_name = 'clientes'
 
 urlpatterns = [
-    # As URLs específicas para clientes virão aqui
+    # Rota para o formulario publico
+    path('cadastro/', views.cadastro_publico_pf, name='cadastro_publico_pf'),
+    # Rota para a pagina de sucesso
+    path('cadastro/sucesso/', views.cadastro_sucesso, name='cadastro_sucesso'),
 ]
