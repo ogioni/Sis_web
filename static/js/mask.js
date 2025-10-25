@@ -23,7 +23,7 @@ function validarCPF(cpf) {
 
 // --- FUNÇÃO DE VALIDAÇÃO DE EMAIL (Regex simples) ---
 function validarEmail(email) {
-    var re = /^[a-zA-Z0m9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/;
+    var re = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/;
     return re.test(String(email).toLowerCase());
 }
 
