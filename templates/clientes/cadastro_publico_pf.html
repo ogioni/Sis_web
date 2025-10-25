@@ -92,6 +92,7 @@
                         <label for="{{ form.data_nascimento.id_for_label }}">{{ form.data_nascimento.label }}:</label>
                         {{ form.data_nascimento }}
                         {{ form.data_nascimento.errors }}
+                        <span id="data_nasc_validation_message" class="validation-message"></span>
                     </div>
                     
                     <div class="form-row">
@@ -150,7 +151,8 @@
                         <label for="{{ form.celular.id_for_label }}">{{ form.celular.label }}:</label>
                         {{ form.celular }}
                         {{ form.celular.errors }}
-                    </div>
+                        <span id="celular_validation_message" class="validation-message"></span>
+                     </div>
                 </div>
 
                 {# LINHA 6: EMAIL - CONFIRMAR EMAIL (2 COLUNAS DE TAMANHO IGUAL) #}
