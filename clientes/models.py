@@ -11,14 +11,13 @@ class Cliente(models.Model):
     rg_orgao_expeditor = models.CharField(max_length=20, verbose_name="Órgão Expedidor", blank=True, null=True)
     rg_uf = models.CharField(max_length=2, verbose_name="UF RG", blank=True, null=True)
     
-    # --- MUDANÇA AQUI ---
-    # Agora o CPF guarda apenas os 11 dígitos, sem máscara
+    # --- MUDANÇA CRÍTICA: CPF com max_length=11 ---
     cpf = models.CharField(
         max_length=11, # <-- MUDANÇA DE 14 PARA 11
         unique=True, 
         verbose_name="CPF",
         error_messages={
-            'unique': "Cliente com esse CPF ja cadastrado!", # Mensagem do banco (fallback)
+            'unique': "Cliente com esse CPF ja cadastrado!", 
         }
     )
     # --- FIM DA MUDANÇA ---
@@ -68,7 +67,7 @@ class Cliente(models.Model):
     condutor_data_nasc = models.DateField(verbose_name="Condutor Adicional: Data Nasc.", null=True, blank=True)
     condutor_rg = models.CharField(max_length=20, verbose_name="Condutor Adicional: RG", blank=True, null=True)
     condutor_cpf = models.CharField(max_length=14, verbose_name="Condutor Adicional: CPF", blank=True, null=True)
-    condutor_cnh = models.CharField(max_length=20, verbose_name="Condutor Adicional: CNH", blank=True, null=True)
+    condutor_cnh = models.CharField(max_length=20, verbose_name="Nº CNH", blank=True, null=True)
     condutor_validade_cnh = models.DateField(verbose_name="Condutor Adicional: Validade CNH", null=True, blank=True)
     condutor_nome_mae = models.CharField(max_length=200, verbose_name="Condutor Adicional: Nome da Mãe", blank=True, null=True)
     condutor_email = models.EmailField(max_length=100, verbose_name="Condutor Adicional: Email", blank=True, null=True)
@@ -94,7 +93,7 @@ class Cliente(models.Model):
     )
 
     class Meta:
-        verbose_name = "Cliente" # MENSAGEM DO BANCO VAI USAR ISSO
+        verbose_name = "Cliente" 
         verbose_name_plural = "Clientes"
         ordering = ['nome_completo'] 
 

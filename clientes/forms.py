@@ -36,6 +36,7 @@ UF_CHOICES = [
     ('RS', 'RS'), ('RO', 'RO'), ('RR', 'RR'), ('SC', 'SC'),
     ('SP', 'SP'), ('SE', 'SE'), ('TO', 'TO'),
 ]
+
 ESTADO_CIVIL_CHOICES = [
     ('', 'Selecione...'), ('SOLTEIRO(A)', 'SOLTEIRO(A)'),
     ('CASADO(A)', 'CASADO(A)'), ('SEPARADO(A)', 'SEPARADO(A)'),
@@ -44,33 +45,24 @@ ESTADO_CIVIL_CHOICES = [
 # --- FIM DAS OPÇÕES ---
 
 
-# --- FORMULÁRIO PARA A FASE 1 (Auto-Registro) ---
+# --- FORMULÁRIO PARA A FASE 1 (Auto-Registro - JÁ FUNCIONA) ---
 class FichaCadastralClienteForm(forms.ModelForm):
     
-    # --- MUDANÇA: Campos obrigatórios e widgets ---
-    
+    email_confirm = forms.EmailField(label='Confirme seu E-mail') 
     nome_completo = forms.CharField(label='Nome Completo', widget=forms.TextInput(attrs={'required': True, 'class': 'uppercase-input'}))
     data_nascimento = forms.DateField(label='Data de Nascimento', widget=forms.TextInput(attrs={'placeholder': 'DD/MM/AAAA', 'required': True}))
-    
-    # CPF (Validação movida para 'clean_cpf')
-    cpf = forms.CharField(
-        label='CPF', 
-        widget=forms.TextInput(attrs={'placeholder': '000.000.000-00', 'required': True})
-    )
-    rg = forms.CharField(label='RG', required=True, widget=forms.TextInput(attrs={'required': True}))
+    cpf = forms.CharField(label='CPF', widget=forms.TextInput(attrs={'placeholder': '000.000.000-00', 'required': True}))
+    rg = forms.CharField(label='RG', required=True, widget=forms.TextInput(attrs={'required': True, 'class': 'uppercase-input'}))
     rg_uf = forms.ChoiceField(label='UF RG', choices=UF_CHOICES, widget=forms.Select(attrs={'required': True}))
     rg_orgao_expeditor = forms.CharField(label='Órgão Expedidor', widget=forms.TextInput(attrs={'required': True, 'class': 'uppercase-input'}))
     estado_civil = forms.ChoiceField(label='Estado Civil', choices=ESTADO_CIVIL_CHOICES, widget=forms.Select(attrs={'required': True}))
     nome_mae = forms.CharField(label='Nome da Mãe', widget=forms.TextInput(attrs={'required': True, 'class': 'uppercase-input'}))
     nome_pai = forms.CharField(label='Nome do Pai', required=False, widget=forms.TextInput(attrs={'class': 'uppercase-input'}))
-    
-    # E-mail
     email = forms.EmailField(label='E-mail', widget=forms.EmailInput(attrs={'required': True, 'class': 'lowercase-input'}))
     email_confirm = forms.EmailField(label='Confirme seu E-mail', widget=forms.EmailInput(attrs={'required': True, 'class': 'lowercase-input'}))
-    
     celular = forms.CharField(label='Celular', widget=forms.TextInput(attrs={'required': True, 'placeholder': '(00) 0.0000-0000'}))
     telefone = forms.CharField(label='Telefone (Fixo)', required=False, widget=forms.TextInput(attrs={'placeholder': '(00) 0000-0000'}))
-
+    
     class Meta:
         model = Cliente
         fields = [
@@ -80,20 +72,14 @@ class FichaCadastralClienteForm(forms.ModelForm):
             'email', 'email_confirm'
         ]
 
-    # --- MUDANÇA: VALIDAÇÃO DE CPF (BACKEND) ---
     def clean_cpf(self):
         cpf = self.cleaned_data.get('cpf')
-        cpf_limpo = re.sub(r'[^\d]', '', str(cpf)) # Limpa a máscara
-
+        cpf_limpo = re.sub(r'[^\d]', '', str(cpf)) 
         if not validate_cpf_algorithm(cpf_limpo):
             raise forms.ValidationError('CPF inválido.')
-        
-        # (Req 3) Verifica se o CPF (só números) já está em uso
         if Cliente.objects.filter(cpf=cpf_limpo).exists():
-            raise forms.ValidationError('Cliente com esse CPF ja cadastrado!') # <-- SUA MENSAGEM
-
-        return cpf_limpo # <-- IMPORTANTE: Retorna o CPF LIMPO
-    # --- FIM DA MUDANÇA ---
+            raise forms.ValidationError('Cliente com esse CPF ja cadastrado!')
+        return cpf_limpo 
 
     def clean_email(self):
         email = self.cleaned_data.get('email')
@@ -107,14 +93,84 @@ class FichaCadastralClienteForm(forms.ModelForm):
         email_confirm = self.cleaned_data.get('email_confirm')
         if not email_confirm:
             return email_confirm
-        return email_confirm.lower()
+        return email_confirm.lower() 
 
     def clean(self):
         cleaned_data = super().clean()
         email = cleaned_data.get('email')
         email_confirm = cleaned_data.get('email_confirm')
-
         if email and email_confirm and email != email_confirm:
             self.add_error('email_confirm', "Os e-mails fornecidos não são iguais.")
-        
         return cleaned_data
+
+# ---
+# --- PASSO 454 (O NOVO CÓDIGO) ---
+# ---
+# --- FORMULÁRIO PARA A FASE 3 (Manutenção da Ficha Completa) ---
+# --- Este formulário será usado pelo cliente logado para ATUALIZAR seus dados ---
+
+class ClienteManutencaoForm(forms.ModelForm):
+    
+    class Meta:
+        model = Cliente
+        # Pega TODOS os campos do Modelo Cliente
+        fields = '__all__'
+        
+        # Exclui os campos que o cliente NÃO PODE editar
+        exclude = ('user', 'data_cadastro', 'ativo', 'tipo_pessoa')
+        
+        # Opcional: Adicionar classes CSS para máscaras e uppercase
+        # (O JS vai pegar os IDs, então isso é mais para o 'uppercase-input')
+        widgets = {
+            # --- Dados Pessoais ---
+            'nome_completo': forms.TextInput(attrs={'class': 'uppercase-input'}),
+            'data_nascimento': forms.TextInput(attrs={'placeholder': 'DD/MM/AAAA'}),
+            'cpf': forms.TextInput(attrs={'readonly': True}), # Não deixa mudar o CPF
+            'rg': forms.TextInput(attrs={'class': 'uppercase-input'}),
+            'rg_orgao_expeditor': forms.TextInput(attrs={'class': 'uppercase-input'}),
+            'rg_uf': forms.Select(), # As opções virão do modelo
+            'cnh': forms.TextInput(attrs={'class': 'uppercase-input'}),
+            'validade_cnh': forms.TextInput(attrs={'placeholder': 'DD/MM/AAAA'}),
+            'nome_mae': forms.TextInput(attrs={'class': 'uppercase-input'}),
+            'nome_pai': forms.TextInput(attrs={'class': 'uppercase-input'}),
+            'estado_civil': forms.Select(), # As opções virão do modelo
+            
+            # Contato
+            'email': forms.EmailInput(attrs={'readonly': True}), # Não deixa mudar o email (username)
+            'telefone': forms.TextInput(attrs={'placeholder': '(00) 0000-0000'}),
+            'celular': forms.TextInput(attrs={'placeholder': '(00) 0.0000-0000'}),
+
+            # Endereço Residencial
+            'cep_residencial': forms.TextInput(attrs={'placeholder': '00000-000'}),
+            'endereco_residencial': forms.TextInput(attrs={'class': 'uppercase-input'}),
+            'numero_residencial': forms.TextInput(),
+            'bairro_residencial': forms.TextInput(attrs={'class': 'uppercase-input'}),
+            'cidade_residencial': forms.TextInput(attrs={'class': 'uppercase-input'}),
+            'estado_residencial': forms.Select(),
+
+            # Dados Profissionais
+            'empresa': forms.TextInput(attrs={'class': 'uppercase-input'}),
+            'cargo': forms.TextInput(attrs={'class': 'uppercase-input'}),
+            'renda_mensal': forms.NumberInput(attrs={'placeholder': '0.00'}),
+            'telefone_comercial': forms.TextInput(attrs={'placeholder': '(00) 0000-0000'}),
+            'cep_comercial': forms.TextInput(attrs={'placeholder': '00000-000'}),
+            'endereco_comercial': forms.TextInput(attrs={'class': 'uppercase-input'}),
+
+            # Referências
+            'ref_pessoal_nome': forms.TextInput(attrs={'class': 'uppercase-input'}),
+            'ref_pessoal_telefone': forms.TextInput(attrs={'placeholder': '(00) 0.0000-0000'}),
+            'ref_bancaria_banco': forms.TextInput(attrs={'class': 'uppercase-input'}),
+            'ref_bancaria_agencia': forms.TextInput(),
+            'ref_bancaria_conta': forms.TextInput(),
+
+            # Condutor Adicional
+            'condutor_nome': forms.TextInput(attrs={'class': 'uppercase-input'}),
+            'condutor_data_nasc': forms.TextInput(attrs={'placeholder': 'DD/MM/AAAA'}),
+            'condutor_rg': forms.TextInput(attrs={'class': 'uppercase-input'}),
+            'condutor_cpf': forms.TextInput(attrs={'placeholder': '000.000.000-00'}),
+            'condutor_cnh': forms.TextInput(attrs={'class': 'uppercase-input'}),
+            'condutor_validade_cnh': forms.TextInput(attrs={'placeholder': 'DD/MM/AAAA'}),
+            'condutor_nome_mae': forms.TextInput(attrs={'class': 'uppercase-input'}),
+            'condutor_email': forms.EmailInput(),
+            'condutor_telefone': forms.TextInput(attrs={'placeholder': '(00) 0.0000-0000'}),
+        }

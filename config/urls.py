@@ -17,10 +17,10 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     
     # Nossas rotas de autenticação (login, logout, etc. que usam /accounts/)
-    path('accounts/', include('django.contrib.auth.urls')), 
+    #path('accounts/', include('django.contrib.auth.urls')), 
+    path('accounts/', include(('django.contrib.auth.urls', 'accounts'), namespace='accounts')),
     
     # Nossas rotas customizadas (troca forçada)
-    # (Removido o /contas/login/ daqui para evitar duplicação com accounts/)
     path('contas/', include('users.urls')), 
         
     # Rota para clientes (Ainda comentada)

@@ -1,4 +1,4 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.models import User, Group
 from django.contrib.auth.tokens import default_token_generator
 from django.utils.http import urlsafe_base64_encode
@@ -6,9 +6,9 @@ from django.utils.encoding import force_bytes
 from django.contrib.sites.shortcuts import get_current_site
 from django.core.mail import EmailMessage
 from django.template.loader import render_to_string
-from django.urls import reverse_lazy
+from django.urls import reverse, reverse_lazy
 from django.db import transaction
-from django.http import HttpResponseRedirect 
+from django.http import HttpResponseRedirect # Necessário para redirecionamento após salvar
 
 # Imports das Views Padrão
 from django.contrib.auth.views import (
@@ -18,7 +18,6 @@ from django.contrib.auth.views import (
 )
 
 # Imports dos Nossos Modelos e Forms
-# (O forms.py do 'users' não existe, removemos o import quebrado)
 from clientes.models import Cliente
 from clientes.forms import FichaCadastralClienteForm 
 
@@ -83,7 +82,9 @@ def cadastro_publico_pf(request):
             
             message = render_to_string('registration/password_reset_email.html', context)
             to_email = form.cleaned_data['email']
-            email_message = EmailMessage(mail_subject, message, to=[to_email])
+            email_message = EmailMessage(
+                mail_subject, message, to=[to_email]
+            )
             email_message.send() # Envia para o console
 
             return redirect('clientes:cadastro_sucesso')
@@ -106,11 +107,10 @@ def cadastro_sucesso(request):
 
 class MinhaPasswordResetConfirmView(PasswordResetConfirmView):
     template_name = 'registration/password_reset_confirm.html'
-    success_url = reverse_lazy('admin:login') # Manda para a tela de login
+    success_url = reverse_lazy('admin:login') 
 
     # (Req 2) Mostra o nome do cliente na tela
     def get_context_data(self, **kwargs):
-        # --- CORREÇÃO AQUI (removido o 'self' extra) ---
         context = super().get_context_data(**kwargs)
         
         if hasattr(self, 'user') and self.user is not None:
@@ -124,18 +124,19 @@ class MinhaPasswordResetConfirmView(PasswordResetConfirmView):
 
     # (Req 1) Ativa o usuário quando a senha for criada
     def form_valid(self, form):
-        # --- CORREÇÃO LÓGICA AQUI ---
+        # --- A CORREÇÃO LÓGICA ESTÁ AQUI ---
+        
         # 1. Pega o usuário (self.user) que a view PAI (PasswordResetConfirmView) 
         #    já validou através do link (uid e token)
-        user = self.user
+        user = self.user 
         
-        # 2. Ativa o usuário (TICKET VERDE)
+        # 2. ATIVA O USUÁRIO (TICKET VERDE)
         user.is_active = True
         user.save()
 
         # 3. Agora que o usuário está ativo,
         #    chama a função do formulário para salvar a nova senha
-        form.save()
+        form.save() # Salva a nova senha
         
         # 4. Redireciona manualmente para a URL de sucesso
         return HttpResponseRedirect(self.get_success_url())

@@ -1,0 +1,241 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Minha Conta - Lider Drive</title>
+    <style>
+        /* CSS copiado da Ficha Cadastral para consistência */
+        body { font-family: sans-serif; background-color: #f4f4f4; margin: 0; padding: 20px;}
+        .container { max-width: 900px; margin: 20px auto; background-color: #fff; padding: 2.5rem; border-radius: 8px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+        
+        /* Cabeçalho da página */
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; border-bottom: 1px solid #eee; padding-bottom: 1rem;}
+        .branding img { width: 150px; }
+        .branding .auth-title { color: #0056b3; font-size: 1.5em; font-weight: bold; margin: 0; text-align: left;}
+        .header .user-info { text-align: right; }
+        .header .user-info p { margin: 0; color: #333; }
+        .header .user-info .logout-link { font-size: 0.9em; margin-top: 5px; }
+        
+        /* Botão Sair (estilo link) */
+        .link-button {
+            background: none; border: none; color: #cc0000;
+            text-decoration: underline; cursor: pointer; padding: 0;
+            font-size: 1em; font-family: sans-serif;
+        }
+        
+        fieldset { border: 1px solid #ccc; border-radius: 4px; padding: 20px; margin-bottom: 20px; }
+        legend { font-weight: bold; font-size: 1.2em; color: #0056b3; padding: 0 10px; }
+        
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; }
+        
+        .form-row { display: flex; flex-direction: column; }
+        .form-row label { font-size: 0.9em; margin-bottom: 5px; color: #555; font-weight: bold; text-align: left; }
+        .form-row input, .form-row select, .form-row textarea { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+        
+        /* Campos Read-only (CPF/Email) */
+        .form-row input[readonly] {
+            background-color: #eee;
+            color: #777;
+        }
+
+        .submit-row { text-align: center; margin-top: 20px; }
+        .submit-row button { padding: 12px 30px; font-size: 1.1em; background-color: #0056b3; color: white; border: none; border-radius: 44px; cursor: pointer; font-weight: bold; }
+        
+        .full-width { grid-column: 1 / -1; }
+        .two-thirds { grid-column: span 2; }
+        .errorlist { color: red; list-style: none; padding: 0; margin-top: 5px; font-size: 0.9em; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        
+        <div class="header">
+            <div class="branding">
+                <img src="{% static 'logo.png' %}" alt="Logotipo Lider Drive">
+                <p class="auth-title">Minha Conta</p>
+            </div>
+            <div class="user-info">
+                {# O 'object' é o Cliente. 'object.user' é o Usuário. #}
+                <p>Olá, <strong>{{ object.nome_completo|default:user.username }}</strong></p>
+                <div class="logout-link">
+                    <form action="{% url 'logout' %}" method="post" style="display: inline;">
+                      {% csrf_token %}
+                      <button type="submit" class="link-button">Sair</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <form method="POST">{% csrf_token %}
+            
+            {% if form.non_field_errors %}
+                <div class="errornote">{{ form.non_field_errors }}</div>
+            {% endif %}
+
+            <fieldset>
+                <legend>Dados Pessoais</legend>
+                <div class="form-grid">
+                    <div class="form-row two-thirds">
+                        <label>{{ form.nome_completo.label }}:</label> {{ form.nome_completo }} {{ form.nome_completo.errors }}
+                    </div>
+                    <div class="form-row">
+                        <label>{{ form.data_nascimento.label }}:</label> {{ form.data_nascimento }} {{ form.data_nascimento.errors }}
+                    </div>
+                    <div class="form-row">
+                        <label>{{ form.cpf.label }}:</label> {{ form.cpf }} {{ form.cpf.errors }}
+                    </div>
+                    <div class="form-row">
+                        <label>{{ form.rg.label }}:</label> {{ form.rg }} {{ form.rg.errors }}
+                    </div>
+                    <div class="form-row">
+                        <label>{{ form.rg_orgao_expeditor.label }}:</label> {{ form.rg_orgao_expeditor }} {{ form.rg_orgao_expeditor.errors }}
+                    </div>
+                    <div class="form-row">
+                        <label>{{ form.rg_uf.label }}:</label> {{ form.rg_uf }} {{ form.rg_uf.errors }}
+                    </div>
+                    <div class="form-row">
+                        <label>{{ form.cnh.label }}:</label> {{ form.cnh }} {{ form.cnh.errors }}
+                    </div>
+                    <div class="form-row">
+                        <label>{{ form.validade_cnh.label }}:</label> {{ form.validade_cnh }} {{ form.validade_cnh.errors }}
+                    </div>
+                    <div class="form-row">
+                        <label>{{ form.estado_civil.label }}:</label> {{ form.estado_civil }} {{ form.estado_civil.errors }}
+                    </div>
+                    <div class="form-row two-thirds">
+                        <label>{{ form.nome_mae.label }}:</label> {{ form.nome_mae }} {{ form.nome_mae.errors }}
+                    </div>
+                    <div class="form-row">
+                        <label>{{ form.celular.label }}:</label> {{ form.celular }} {{ form.celular.errors }}
+                    </div>
+                     <div class="form-row two-thirds">
+                        <label>{{ form.nome_pai.label }}:</label> {{ form.nome_pai }} {{ form.nome_pai.errors }}
+                    </div>
+                    <div class="form-row">
+                        <label>{{ form.telefone.label }}:</label> {{ form.telefone }} {{ form.telefone.errors }}
+                    </div>
+                    <div class="form-row full-width">
+                        <label>{{ form.email.label }}:</label> {{ form.email }} {{ form.email.errors }}
+                    </div>
+                </div>
+            </fieldset>
+
+            <fieldset>
+                <legend>Endereço Residencial</legend>
+                <div class="form-grid">
+                    <div class="form-row">
+                        <label>{{ form.cep_residencial.label }}:</label> {{ form.cep_residencial }}
+                    </div>
+                     <div class="form-row two-thirds">
+                        <label>{{ form.endereco_residencial.label }}:</label> {{ form.endereco_residencial }}
+                    </div>
+                    <div class="form-row">
+                        <label>{{ form.numero_residencial.label }}:</label> {{ form.numero_residencial }}
+                    </div>
+                    <div class="form-row">
+                        <label>{{ form.bairro_residencial.label }}:</label> {{ form.bairro_residencial }}
+                    </div>
+                    <div class="form-row">
+                        <label>{{ form.cidade_residencial.label }}:</label> {{ form.cidade_residencial }}
+                    </div>
+                     <div class="form-row">
+                        <label>{{ form.estado_residencial.label }}:</label> {{ form.estado_residencial }}
+                    </div>
+                </div>
+            </fieldset>
+            
+            <fieldset>
+                <legend>Dados Profissionais</legend>
+                <div class="form-grid">
+                    <div class="form-row two-thirds">
+                        <label>{{ form.empresa.label }}:</label> {{ form.empresa }}
+                    </div>
+                    <div class="form-row">
+                        <label>{{ form.cargo.label }}:</label> {{ form.cargo }}
+                    </div>
+                    <div class="form-row">
+                        <label>{{ form.renda_mensal.label }}:</label> {{ form.renda_mensal }}
+                    </div>
+                    <div class="form-row">
+                        <label>{{ form.telefone_comercial.label }}:</label> {{ form.telefone_comercial }}
+                    </div>
+                    <div class="form-row">
+                        <label>{{ form.cep_comercial.label }}:</label> {{ form.cep_comercial }}
+                    </div>
+                    <div class="form-row two-thirds">
+                        <label>{{ form.endereco_comercial.label }}:</label> {{ form.endereco_comercial }}
+                    </div>
+                </div>
+            </fieldset>
+
+            <fieldset>
+                <legend>Referências</legend>
+                <div class="form-grid">
+                    <div class="form-row two-thirds">
+                        <label>{{ form.ref_pessoal_nome.label }}:</label> {{ form.ref_pessoal_nome }}
+                    </div>
+                    <div class="form-row">
+                        <label>{{ form.ref_pessoal_telefone.label }}:</label> {{ form.ref_pessoal_telefone }}
+                    </div>
+                    <div class="form-row">
+                        <label>{{ form.ref_bancaria_banco.label }}:</label> {{ form.ref_bancaria_banco }}
+                    </div>
+                    <div class="form-row">
+                        <label>{{ form.ref_bancaria_agencia.label }}:</label> {{ form.ref_bancaria_agencia }}
+                    </div>
+                    <div class="form-row">
+                        <label>{{ form.ref_bancaria_conta.label }}:</label> {{ form.ref_bancaria_conta }}
+                    </div>
+                </div>
+            </fieldset>
+            
+            <fieldset>
+                <legend>Condutor Adicional (Opcional)</legend>
+                <div class="form-grid">
+                    <div class="form-row two-thirds">
+                        <label>{{ form.condutor_nome.label }}:</label> {{ form.condutor_nome }}
+                    </div>
+                    <div class="form-row">
+                        <label>{{ form.condutor_data_nasc.label }}:</label> {{ form.condutor_data_nasc }}
+                    </div>
+                    <div class="form-row">
+                        <label>{{ form.condutor_rg.label }}:</label> {{ form.condutor_rg }}
+                    </div>
+                    <div class="form-row">
+                        <label>{{ form.condutor_cpf.label }}:</label> {{ form.condutor_cpf }}
+                    </div>
+                    <div class="form-row">
+                        <label>{{ form.condutor_cnh.label }}:</label> {{ form.condutor_cnh }}
+                    </div>
+                    <div class="form-row">
+                        <label>{{ form.condutor_validade_cnh.label }}:</label> {{ form.condutor_validade_cnh }}
+                    </div>
+                    <div class="form-row two-thirds">
+                        <label>{{ form.condutor_nome_mae.label }}:</label> {{ form.condutor_nome_mae }}
+                    </div>
+                    <div class="form-row">
+                        <label>{{ form.condutor_email.label }}:</label> {{ form.condutor_email }}
+                    </div>
+                    <div class="form-row">
+                        <label>{{ form.condutor_telefone.label }}:</label> {{ form.condutor_telefone }}
+                    </div>
+                </div>
+            </fieldset>
+
+            <div class="submit-row">
+                <button type="submit">Salvar Alterações</button>
+            </div>
+        </form>
+    </div>
+
+    {# --- SCRIPTS DE MÁSCARA (NECESSÁRIOS) --- #}
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.mask/1.14.16/jquery.mask.min.js"></script>
+    <script src="{% static 'js/mask.js' %}"></script>
+    {# --- FIM SCRIPTS --- #}
+
+</body>
+</html>
