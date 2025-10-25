@@ -27,7 +27,6 @@ INSTALLED_APPS = [
     'clientes.apps.ClientesConfig',
     'js_asset',
     'widget_tweaks',
-    # 'captcha', # <-- REMOVIDO/COMENTADO (Estava causando o erro)
 ]
 
 SITE_ID = 1 
@@ -95,10 +94,13 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True 
 
 # Configurações de Login
-LOGIN_URL = '/admin/login/'
-LOGIN_REDIRECT_URL = '/' # Redirecionamento padrão (será pego pela função abaixo)
-LOGIN_REDIRECT_URL_FUNCTION = 'clientes.login_redirect.custom_login_redirect' # Redirecionamento dinâmico
+LOGIN_URL = '/login/' # Tela de login principal
 
+# --- MUDANÇA CRÍTICA AQUI (PASSO 462) ---
+# O Django PRECISA desta linha para ativar o redirecionamento customizado
+LOGIN_REDIRECT_URL = '/' 
+LOGIN_REDIRECT_URL_FUNCTION = 'clientes.login_redirect.custom_login_redirect' # APONTA PARA A FUNÇÃO
+# --- FIM DA MUDANÇA ---
 
 # Email Configs
 EMAIL_BACKEND = config('EMAIL_BACKEND', default='django.core.mail.backends.console.EmailBackend') 
@@ -114,7 +116,7 @@ ANYMAIL = {
 DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='seu-email-aqui@dominio.com')
 SERVER_EMAIL = DEFAULT_FROM_EMAIL
 
-# --- CONFIGURAÇÕES DE RECAPTCHA REMOVIDAS ---
-# RECAPTCHA_PUBLIC_KEY = config('RECAPTCHA_PUBLIC_KEY', default='')
-# RECAPTCHA_PRIVATE_KEY = config('RECAPTCHA_PRIVATE_KEY', default='')
-# NOCAPTCHA = True
+# reCAPTCHA (ainda não usado, mas configurado)
+RECAPTCHA_PUBLIC_KEY = config('RECAPTCHA_PUBLIC_KEY', default='')
+RECAPTCHA_PRIVATE_KEY = config('RECAPTCHA_PRIVATE_KEY', default='')
+NOCAPTCHA = True

@@ -27,7 +27,7 @@ class MinhaLoginView(LoginView):
     # Esta view está ligada a /contas/login/, que não estamos usando como principal
     template_name = 'paginas/login.html' 
     redirect_authenticated_user = True
-    next_page = reverse_lazy('admin:index')
+    # next_page = reverse_lazy('admin:index')
 
 class MinhaPasswordChangeView(PasswordChangeView):
     template_name = 'paginas/change_password.html' # (A tela de troca forçada)

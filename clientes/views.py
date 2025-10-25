@@ -9,7 +9,6 @@ from django.template.loader import render_to_string
 from django.urls import reverse, reverse_lazy
 from django.db import transaction
 from django.utils.crypto import get_random_string
-
 from django.contrib import messages
 
 # --- NOVOS IMPORTS PARA A ÁREA DO CLIENTE ---
@@ -95,6 +94,12 @@ def cadastro_publico_pf(request):
         'page_title': 'Crie sua Conta - 1/3',
     }
     return render(request, 'clientes/cadastro_publico_pf.html', context)
+
+@login_required # Garante que só quem está logado pode entrar
+def area_cliente_logado(request):
+    # Retorna o template que você já criou (area_cliente.html)
+    return render(request, 'clientes/area_cliente.html', {'user': request.user})
+
 
 # View simples para a página de sucesso
 def cadastro_sucesso(request):

@@ -1,12 +1,12 @@
 # clientes/login_redirect.py
 
-# Esta função é chamada PELO DJANGO após um login bem-sucedido.
-def custom_login_redirect(request):
-    user = request.user
+# A função de redirecionamento (ela é chamada APÓS o login)
+def custom_login_redirect(user):
+    # Se o usuário é um staff (Admin), ele vai para o painel de controle
+    if user.is_staff:
+        return '/admin/'
     
-    # Se o usuário não é um staff (admin), ele vai para a área dele
-    if not user.is_staff and user.is_active:
+    # Se for um usuário comum (Cliente) e estiver ativo, ele vai para a área dele
+    # A área do cliente é a rota 'clientes:area_cliente' que mapeia para '/clientes/area/'
+    else:
         return '/clientes/area/'
-    
-    # Caso contrário (se for admin ou staff), vai para o painel de admin.
-    return '/admin/'
