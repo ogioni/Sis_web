@@ -7,10 +7,12 @@ from django.contrib.sites.shortcuts import get_current_site
 from django.core.mail import EmailMessage
 from django.template.loader import render_to_string
 from django.urls import reverse
+from django.db import transaction # Para garantir que tudo rode junto
 
 from .models import Cliente
 from .forms import FichaCadastralClienteForm # Nosso formulário da Fase 1
 
+@transaction.atomic # Garante que ou tudo funciona, ou nada é salvo
 def cadastro_publico_pf(request):
     if request.method == 'POST':
         # 1. Pega os dados enviados
@@ -22,25 +24,24 @@ def cadastro_publico_pf(request):
             # 3. Cria o Cliente (mas não salva no banco ainda)
             novo_cliente = form.save(commit=False)
             
-            # 4. Cria o Usuário (User)
+            # 4. Cria o registro de Usuário (User)
             email = form.cleaned_data['email']
             nome = form.cleaned_data['nome_completo']
             
-            # Define um username (pode ser o email ou parte dele)
-            # Vamos usar o email como username para garantir que seja único
+            # Define um username (vamos usar o email, é garantido ser único)
             username = email 
             
             try:
-                # Cria o usuário. Ele fica INATIVO por padrão (is_active=False)
-                # e sem senha definida (set_unusable_password)
+                # Cria o usuário. 
                 user = User.objects.create_user(username=username, email=email)
-                user.is_active = False
                 user.first_name = nome.split(' ')[0] # Pega o primeiro nome
+                user.is_active = False # USUÁRIO INATIVO: Só será ativado após clicar no link
                 user.set_unusable_password() # Força o usuário a NÃO conseguir logar
                 user.save()
+                
             except Exception as e:
-                # Se der erro ao criar o usuário (ex: username duplicado, raro)
-                form.add_error(None, f"Erro ao criar conta de usuário: {e}")
+                # Se der erro ao criar o usuário (ex: username duplicado)
+                form.add_error(None, f"Erro ao criar conta de usuário. Verifique os dados.")
                 return render(request, 'clientes/cadastro_publico_pf.html', {'form': form})
 
             # 5. Liga o Cliente ao Usuário recém-criado
@@ -82,9 +83,10 @@ def cadastro_publico_pf(request):
     }
     return render(request, 'clientes/cadastro_publico_pf.html', context)
 
+
 # View simples para a página de sucesso
 def cadastro_sucesso(request):
     return render(request, 'clientes/cadastro_sucesso.html')
 
 # --- PRÓXIMOS PASSOS (Views de Ativação) ---
-# (Vamos adicionar a view de ativação e criação de senha depois)
+# (Já temos a view de 'password_reset_confirm' que o link usa!)

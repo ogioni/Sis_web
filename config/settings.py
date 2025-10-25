@@ -8,10 +8,12 @@ from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+# Lendo a chave do .env
 SECRET_KEY = config('SECRET_KEY') 
 
 DEBUG = True
 ALLOWED_HOSTS = []
+
 
 # Application definition
 INSTALLED_APPS = [
@@ -25,10 +27,10 @@ INSTALLED_APPS = [
     'users', 
     'anymail', 
     'clientes.apps.ClientesConfig',
-    #'django_js_asset.apps.DjangoJsAssetConfig',   # <--- Garanta que esta linha existe (e não está comentada)
-    #'django_js_asset',
+    'js_asset',
     'widget_tweaks',
 ]
+
 SITE_ID = 1 
 
 MIDDLEWARE = [
@@ -90,20 +92,16 @@ STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static'),]
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-
-# --- MUDANÇA AQUI ---
 # Configurações de Sessão
-SESSION_EXPIRE_AT_BROWSER_CLOSE = True # Desloga o usuário ao fechar o navegador
-# --- FIM DA MUDANÇA ---
-
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True # <-- GARANTINDO QUE ESTÁ AQUI
 
 # Configurações de Login
-LOGIN_URL = '/contas/login/'        
+LOGIN_URL = '/admin/login/'        
 LOGIN_REDIRECT_URL = '/admin/'      
 
 # Email Configs
 EMAIL_BACKEND = config('EMAIL_BACKEND', default='django.core.mail.backends.console.EmailBackend') 
-EMAIL_HOST = 'smtp.sendgrid.net'
+EMAIL_HOST = config('EMAIL_HOST', default='smtp.sendgrid.net')
 EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='')
 EMAIL_PORT = config('EMAIL_PORT', default=587, cast=int)
 EMAIL_USE_TLS = config('EMAIL_USE_TLS', default=True, cast=bool)
