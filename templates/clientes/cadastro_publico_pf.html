@@ -15,7 +15,6 @@
         fieldset { border: 1px solid #ccc; border-radius: 4px; padding: 20px; margin-bottom: 20px; }
         legend { font-weight: bold; font-size: 1.2em; color: #0056b3; padding: 0 10px; }
         
-        /* Grid Principal (3 Colunas) */
         .form-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; }
         
         .form-row { display: flex; flex-direction: column; }
@@ -25,8 +24,34 @@
         .submit-row button { padding: 12px 30px; font-size: 1.1em; background-color: #38a169; color: white; border: none; border-radius: 44px; cursor: pointer; font-weight: bold; }
         
         .full-width { grid-column: 1 / -1; }
-        .two-thirds { grid-column: span 2; }
-        .errorlist { color: red; list-style: none; padding: 0; margin-top: 5px; font-size: 0.9em; }
+        
+        /* (Req 1) Força campos de nome para Maiúsculas (CSS) */
+        .uppercase-input {
+            text-transform: uppercase;
+        }
+        
+        /* (Req 2) Força campos de email para Minúsculas (CSS) */
+        .lowercase-input {
+            text-transform: lowercase;
+        }
+
+        /* (Req 2) Container para o Label + Mensagem */
+        .label-container {
+            display: flex;
+            justify-content: space-between; 
+            align-items: baseline; 
+        }
+        .validation-message {
+            font-size: 0.9em;
+            font-weight: bold;
+            margin-left: 10px; 
+        }
+        
+        .errorlist { 
+            color: red; list-style: none; padding: 0; 
+            margin-top: 5px; font-size: 0.9em; 
+        }
+        
         .back-link { text-align: center; margin-top: 1.5rem; font-size: 0.9em; }
         .back-link a { color: #0056b3; text-decoration: none; }
     </style>
@@ -43,93 +68,109 @@
 
             <fieldset>
                 <legend>Dados Pessoais (Fase 1)</legend>
+                
+                {% if form.non_field_errors %}
+                    {% for error in form.non_field_errors %}
+                        <p class="errorlist" style="text-align: center; background-color: #ffdddd; padding: 10px; border-radius: 4px;">{{ error }}</p>
+                    {% endfor %}
+                {% endif %}
+
+                {# LINHA 1: NOME COMPLETO (FULL WIDTH) #}
                 <div class="form-grid">
-                    
-                    {# LINHA 1: NOME COMPLETO (FULL WIDTH) #}
                     <div class="form-row full-width">
-                        <label>{{ form.nome_completo.label }}:</label>
+                        <div class="label-container">
+                            <label for="{{ form.nome_completo.id_for_label }}">{{ form.nome_completo.label }}:</label>
+                        </div>
                         {{ form.nome_completo }}
                         {{ form.nome_completo.errors }}
                     </div>
-                    
-                    {# LINHA 2: DATA NASCIMENTO - CPF - RG (3 COLUNAS) #}
+                </div>
+                
+                {# LINHA 2: DATA NASCIMENTO - CPF - RG #}
+                <div class="form-grid">
                     <div class="form-row">
-                        <label>{{ form.data_nascimento.label }}:</label>
+                        <label for="{{ form.data_nascimento.id_for_label }}">{{ form.data_nascimento.label }}:</label>
                         {{ form.data_nascimento }}
                         {{ form.data_nascimento.errors }}
                     </div>
+                    
                     <div class="form-row">
-                        <label>{{ form.cpf.label }}:</label>
+                        <div class="label-container">
+                            <label for="{{ form.cpf.id_for_label }}">{{ form.cpf.label }}:</label>
+                            <span id="cpf_validation_message" class="validation-message"></span>
+                        </div>
                         {{ form.cpf }}
                         {{ form.cpf.errors }}
                     </div>
+                    
                     <div class="form-row">
-                        <label>{{ form.rg.label }}:</label>
+                        <label for="{{ form.rg.id_for_label }}">{{ form.rg.label }}:</label>
                         {{ form.rg }}
                         {{ form.rg.errors }}
                     </div>
 
-                    {# LINHA 3: ORGAO EXPEDIDOR - UF RG - ESTADO CIVIL (3 COLUNAS) #}
+                    {# LINHA 3: ORGAO EXPEDIDOR - UF RG - ESTADO CIVIL #}
                     <div class="form-row">
-                        <label>{{ form.rg_orgao_expeditor.label }}:</label>
+                        <label for="{{ form.rg_orgao_expeditor.id_for_label }}">{{ form.rg_orgao_expeditor.label }}:</label>
                         {{ form.rg_orgao_expeditor }}
                         {{ form.rg_orgao_expeditor.errors }}
                     </div>
                     <div class="form-row">
-                        <label>{{ form.rg_uf.label }}:</label>
-                        {{ form.rg_uf }}
-                        {{ form.rg_uf.errors }}
+                        <label for="{{ form.rg_uf.id_for_label }}">{{ form.rg_uf.label }}:</label>
+                        {{ form.rg_uf }} {{ form.rg_uf.errors }}
                     </div>
                     <div class="form-row">
-                        <label>{{ form.estado_civil.label }}:</label>
-                        {{ form.estado_civil }}
-                        {{ form.estado_civil.errors }}
+                        <label for="{{ form.estado_civil.id_for_label }}">{{ form.estado_civil.label }}:</label>
+                        {{ form.estado_civil }} {{ form.estado_civil.errors }}
                     </div>
+                </div>
 
-                    {# LINHA 4: NOME MAE - NOME PAI (NOVAS DIVS DE 2 COLUNAS) #}
-                    <div class="form-row full-width" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
-                        <div class="form-row">
-                            <label>{{ form.nome_mae.label }}:</label>
-                            {{ form.nome_mae }}
-                            {{ form.nome_mae.errors }}
-                        </div>
-                        <div class="form-row">
-                            <label>{{ form.nome_pai.label }}:</label>
-                            {{ form.nome_pai }}
-                            {{ form.nome_pai.errors }}
-                        </div>
+                {# LINHA 4: NOME MAE - NOME PAI (2 COLUNAS DE TAMANHO IGUAL) #}
+                <div class="form-row full-width" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                    <div class="form-row">
+                        <label for="{{ form.nome_mae.id_for_label }}">{{ form.nome_mae.label }}:</label>
+                        {{ form.nome_mae }}
+                        {{ form.nome_mae.errors }}
                     </div>
-
-
-                    {# LINHA 5: TELEFONE FIXO - CELULAR (NOVAS DIVS DE 2 COLUNAS) #}
-                    <div class="form-row full-width" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
-                        <div class="form-row">
-                            <label>{{ form.telefone.label }}:</label>
-                            {{ form.telefone }}
-                            {{ form.telefone.errors }}
-                        </div>
-                        <div class="form-row">
-                            <label>{{ form.celular.label }}:</label>
-                            {{ form.celular }}
-                            {{ form.celular.errors }}
-                        </div>
+                    <div class="form-row">
+                        <label for="{{ form.nome_pai.id_for_label }}">{{ form.nome_pai.label }}:</label>
+                        {{ form.nome_pai }}
+                        {{ form.nome_pai.errors }}
                     </div>
+                </div>
 
-
-                    {# LINHA 6: EMAIL - CONFIRMAR EMAIL (NOVAS DIVS DE 2 COLUNAS) #}
-                    <div class="form-row full-width" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
-                        <div class="form-row">
-                            <label>{{ form.email.label }}:</label>
-                            {{ form.email }}
-                            {{ form.email.errors }}
-                        </div>
-                        <div class="form-row">
-                            <label>{{ form.email_confirm.label }}:</label>
-                            {{ form.email_confirm }}
-                            {{ form.email_confirm.errors }}
-                        </div>
+                {# LINHA 5: TELEFONE FIXO - CELULAR (2 COLUNAS DE TAMANHO IGUAL) #}
+                <div class="form-row full-width" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                    <div class="form-row">
+                        <label for="{{ form.telefone.id_for_label }}">{{ form.telefone.label }}:</label>
+                        {{ form.telefone }}
+                        {{ form.telefone.errors }}
                     </div>
-                    
+                    <div class="form-row">
+                        <label for="{{ form.celular.id_for_label }}">{{ form.celular.label }}:</label>
+                        {{ form.celular }}
+                        {{ form.celular.errors }}
+                    </div>
+                </div>
+
+                {# LINHA 6: EMAIL - CONFIRMAR EMAIL (2 COLUNAS DE TAMANHO IGUAL) #}
+                <div class="form-row full-width" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                    <div class="form-row">
+                        <div class="label-container">
+                            <label for="{{ form.email.id_for_label }}">{{ form.email.label }}:</label>
+                            <span id="email_validation_message" class="validation-message"></span>
+                        </div>
+                        {{ form.email }}
+                        {{ form.email.errors }}
+                    </div>
+                    <div class="form-row">
+                        <div class="label-container">
+                            <label for="{{ form.email_confirm.id_for_label }}">{{ form.email_confirm.label }}:</label>
+                            <span id="email_confirm_validation_message" class="validation-message"></span>
+                        </div>
+                        {{ form.email_confirm }}
+                        {{ form.email_confirm.errors }}
+                    </div>
                 </div>
             </fieldset>
 
@@ -144,7 +185,7 @@
         </div>
     </div>
     
-    {# --- SCRIPTS DE MÁSCARA (NECESSÁRIOS) --- #}
+    {# --- SCRIPTS DE MÁSCARA (NO FIM DO BODY) --- #}
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.mask/1.14.16/jquery.mask.min.js"></script>
     <script src="{% static 'js/mask.js' %}"></script>

@@ -1,0 +1,13 @@
+Olá, {{ user.first_name }}!
+
+Obrigado por se cadastrar na Lider Drive.
+Sua conta foi criada, mas precisa ser ativada.
+
+Por favor, clique no link abaixo para validar seu e-mail e DEFINIR SUA SENHA de acesso:
+
+{{ protocol }}://{{ domain }}{% url 'password_reset_confirm' uidb64=uid token=token %}
+
+Se você não solicitou este cadastro, pode ignorar esta mensagem.
+
+Obrigado,
+Equipe Lider Drive

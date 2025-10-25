@@ -1,38 +1,114 @@
 from django import forms
 from .models import Cliente
+from django.contrib.auth.models import User
+import re # Para limpar o CPF
 
-# --- FORMULÁRIO PARA A FASE 1 (Auto-Registro, Dados Essenciais) ---
+# --- FUNÇÃO DE VALIDAÇÃO DE CPF (Algoritmo) ---
+def validate_cpf_algorithm(cpf_limpo):
+    if len(cpf_limpo) != 11 or cpf_limpo == cpf_limpo[0] * 11:
+        return False
+    # Algoritmo de validação (Dígito 1)
+    sum_ = 0
+    for i in range(9):
+        sum_ += int(cpf_limpo[i]) * (10 - i)
+    rev = (sum_ * 10) % 11
+    if rev == 10: rev = 0
+    if rev != int(cpf_limpo[9]):
+        return False
+    # (Dígito 2)
+    sum_ = 0
+    for i in range(10):
+        sum_ += int(cpf_limpo[i]) * (11 - i)
+    rev = (sum_ * 10) % 11
+    if rev == 10: rev = 0
+    if rev != int(cpf_limpo[10]):
+        return False
+    return True
+# --- FIM DA FUNÇÃO ---
+
+# --- OPÇÕES PARA OS DROPDOWNS (SELECTS) ---
+UF_CHOICES = [
+    ('', 'Selecione...'), ('AC', 'AC'), ('AL', 'AL'), ('AP', 'AP'), ('AM', 'AM'),
+    ('BA', 'BA'), ('CE', 'CE'), ('DF', 'DF'), ('ES', 'ES'),
+    ('GO', 'GO'), ('MA', 'MA'), ('MT', 'MT'), ('MS', 'MS'),
+    ('MG', 'MG'), ('PA', 'PA'), ('PB', 'PB'), ('PR', 'PR'),
+    ('PE', 'PE'), ('PI', 'PI'), ('RJ', 'RJ'), ('RN', 'RN'),
+    ('RS', 'RS'), ('RO', 'RO'), ('RR', 'RR'), ('SC', 'SC'),
+    ('SP', 'SP'), ('SE', 'SE'), ('TO', 'TO'),
+]
+ESTADO_CIVIL_CHOICES = [
+    ('', 'Selecione...'), ('SOLTEIRO(A)', 'SOLTEIRO(A)'),
+    ('CASADO(A)', 'CASADO(A)'), ('SEPARADO(A)', 'SEPARADO(A)'),
+    ('DIVORCIADO(A)', 'DIVORCIADO(A)'), ('VIUVO(A)', 'VIÚVO(A)'), 
+]
+# --- FIM DAS OPÇÕES ---
+
+
+# --- FORMULÁRIO PARA A FASE 1 (Auto-Registro) ---
 class FichaCadastralClienteForm(forms.ModelForm):
-    # Campo de confirmação de email (não está no modelo, é só para validação)
-    email_confirm = forms.EmailField(label='Confirme seu E-mail') 
+    
+    # --- MUDANÇA: Campos obrigatórios e widgets ---
+    
+    nome_completo = forms.CharField(label='Nome Completo', widget=forms.TextInput(attrs={'required': True, 'class': 'uppercase-input'}))
+    data_nascimento = forms.DateField(label='Data de Nascimento', widget=forms.TextInput(attrs={'placeholder': 'DD/MM/AAAA', 'required': True}))
+    
+    # CPF (Validação movida para 'clean_cpf')
+    cpf = forms.CharField(
+        label='CPF', 
+        widget=forms.TextInput(attrs={'placeholder': '000.000.000-00', 'required': True})
+    )
+    rg = forms.CharField(label='RG', required=True, widget=forms.TextInput(attrs={'required': True}))
+    rg_uf = forms.ChoiceField(label='UF RG', choices=UF_CHOICES, widget=forms.Select(attrs={'required': True}))
+    rg_orgao_expeditor = forms.CharField(label='Órgão Expedidor', widget=forms.TextInput(attrs={'required': True, 'class': 'uppercase-input'}))
+    estado_civil = forms.ChoiceField(label='Estado Civil', choices=ESTADO_CIVIL_CHOICES, widget=forms.Select(attrs={'required': True}))
+    nome_mae = forms.CharField(label='Nome da Mãe', widget=forms.TextInput(attrs={'required': True, 'class': 'uppercase-input'}))
+    nome_pai = forms.CharField(label='Nome do Pai', required=False, widget=forms.TextInput(attrs={'class': 'uppercase-input'}))
+    
+    # E-mail
+    email = forms.EmailField(label='E-mail', widget=forms.EmailInput(attrs={'required': True, 'class': 'lowercase-input'}))
+    email_confirm = forms.EmailField(label='Confirme seu E-mail', widget=forms.EmailInput(attrs={'required': True, 'class': 'lowercase-input'}))
+    
+    celular = forms.CharField(label='Celular', widget=forms.TextInput(attrs={'required': True, 'placeholder': '(00) 0.0000-0000'}))
+    telefone = forms.CharField(label='Telefone (Fixo)', required=False, widget=forms.TextInput(attrs={'placeholder': '(00) 0000-0000'}))
 
     class Meta:
         model = Cliente
-        # AQUI É ONDE DEFINIMOS A ORDEM LÓGICA E AS MUDANÇAS DE ORDEM
         fields = [
-            'nome_completo', 
-            'data_nascimento', 
-            'cpf', 
-            'estado_civil',       # MUDANÇA: Subiu para L2
-            'rg',                 # MUDANÇA: Desceu para L3
-            'rg_orgao_expeditor', # MUDANÇA: Novo label será 'Orgão Expedidor'
-            'rg_uf',              # MUDANÇA: Novo label será 'UF RG'
-            'nome_mae', 
-            'nome_pai',
-            'telefone', 
-            'celular', 
-            'email',
-            'email_confirm', 
+            'nome_completo', 'data_nascimento', 'cpf', 'rg', 
+            'rg_orgao_expeditor', 'rg_uf', 'estado_civil',
+            'nome_mae', 'nome_pai', 'telefone', 'celular', 
+            'email', 'email_confirm'
         ]
+
+    # --- MUDANÇA: VALIDAÇÃO DE CPF (BACKEND) ---
+    def clean_cpf(self):
+        cpf = self.cleaned_data.get('cpf')
+        cpf_limpo = re.sub(r'[^\d]', '', str(cpf)) # Limpa a máscara
+
+        if not validate_cpf_algorithm(cpf_limpo):
+            raise forms.ValidationError('CPF inválido.')
         
-        # MUDANÇA: Customização dos labels
-        labels = {
-            'estado_civil': 'Estado Civil', # Manter, mas reordenado
-            'rg': 'RG',                     # Manter, mas reordenado
-            'rg_orgao_expeditor': 'Órgão Expedidor', # Label corrigido
-            'rg_uf': 'UF RG',               # Label corrigido
-        }
-        
+        # (Req 3) Verifica se o CPF (só números) já está em uso
+        if Cliente.objects.filter(cpf=cpf_limpo).exists():
+            raise forms.ValidationError('Cliente com esse CPF ja cadastrado!') # <-- SUA MENSAGEM
+
+        return cpf_limpo # <-- IMPORTANTE: Retorna o CPF LIMPO
+    # --- FIM DA MUDANÇA ---
+
+    def clean_email(self):
+        email = self.cleaned_data.get('email')
+        if not email: 
+             return email
+        if User.objects.filter(email__iexact=email).exists():
+            raise forms.ValidationError('Este e-mail já está em uso por outro usuário.')
+        return email.lower() 
+    
+    def clean_email_confirm(self):
+        email_confirm = self.cleaned_data.get('email_confirm')
+        if not email_confirm:
+            return email_confirm
+        return email_confirm.lower()
+
     def clean(self):
         cleaned_data = super().clean()
         email = cleaned_data.get('email')
@@ -40,4 +116,5 @@ class FichaCadastralClienteForm(forms.ModelForm):
 
         if email and email_confirm and email != email_confirm:
             self.add_error('email_confirm', "Os e-mails fornecidos não são iguais.")
+        
         return cleaned_data

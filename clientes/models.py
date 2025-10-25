@@ -1,4 +1,5 @@
 from django.db import models
+from django.contrib.auth.models import User 
 
 class Cliente(models.Model):
     # ----------------------------------------
@@ -7,13 +8,21 @@ class Cliente(models.Model):
     nome_completo = models.CharField(max_length=200, verbose_name="Nome Completo")
     data_nascimento = models.DateField(verbose_name="Data de Nascimento", null=True, blank=True)
     rg = models.CharField(max_length=20, verbose_name="RG", blank=True, null=True)
-    
-    # --- NOVOS CAMPOS PARA O CADASTRO SIMPLES ---
     rg_orgao_expeditor = models.CharField(max_length=20, verbose_name="Órgão Expedidor", blank=True, null=True)
     rg_uf = models.CharField(max_length=2, verbose_name="UF RG", blank=True, null=True)
-    # --- FIM NOVOS CAMPOS ---
     
-    cpf = models.CharField(max_length=14, unique=True, verbose_name="CPF") # CPF/CNPJ (PF)
+    # --- MUDANÇA AQUI ---
+    # Agora o CPF guarda apenas os 11 dígitos, sem máscara
+    cpf = models.CharField(
+        max_length=11, # <-- MUDANÇA DE 14 PARA 11
+        unique=True, 
+        verbose_name="CPF",
+        error_messages={
+            'unique': "Cliente com esse CPF ja cadastrado!", # Mensagem do banco (fallback)
+        }
+    )
+    # --- FIM DA MUDANÇA ---
+    
     cnh = models.CharField(max_length=20, verbose_name="Nº CNH", blank=True, null=True)
     validade_cnh = models.DateField(verbose_name="Validade CNH", null=True, blank=True)
     nome_mae = models.CharField(max_length=200, verbose_name="Nome da Mãe", blank=True, null=True)
@@ -22,7 +31,7 @@ class Cliente(models.Model):
     
     # Contato Pessoal
     email = models.EmailField(max_length=100, blank=True, null=True)
-    telefone = models.CharField(max_length=20, verbose_name="Telefone", blank=True, null=True)
+    telefone = models.CharField(max_length=20, verbose_name="Telefone (Fixo)", blank=True, null=True) 
     celular = models.CharField(max_length=20, verbose_name="Celular", blank=True, null=True)
 
     # Endereço Residencial
@@ -40,8 +49,6 @@ class Cliente(models.Model):
     cargo = models.CharField(max_length=100, verbose_name="Cargo/Função", blank=True, null=True)
     renda_mensal = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Renda Mensal", null=True, blank=True)
     telefone_comercial = models.CharField(max_length=20, verbose_name="Telefone Comercial", blank=True, null=True)
-    
-    # Endereço Comercial
     cep_comercial = models.CharField(max_length=9, verbose_name="CEP Comercial", blank=True, null=True)
     endereco_comercial = models.CharField(max_length=255, verbose_name="Endereço Comercial", blank=True, null=True)
 
@@ -72,17 +79,23 @@ class Cliente(models.Model):
     # ----------------------------------------
     data_cadastro = models.DateTimeField(auto_now_add=True)
     ativo = models.BooleanField(default=True)
-    
     tipo_pessoa = models.CharField(
         max_length=1, 
         choices=[('F', 'Pessoa Física'), ('J', 'Pessoa Jurídica')],
         default='F',
         verbose_name="Tipo"
     )
+    user = models.OneToOneField(
+        User, 
+        on_delete=models.SET_NULL, 
+        null=True, 
+        blank=True,
+        verbose_name="Usuário de Acesso"
+    )
 
     class Meta:
-        verbose_name = "Customer"
-        verbose_name_plural = "Customers"
+        verbose_name = "Cliente" # MENSAGEM DO BANCO VAI USAR ISSO
+        verbose_name_plural = "Clientes"
         ordering = ['nome_completo'] 
 
     def __str__(self):
