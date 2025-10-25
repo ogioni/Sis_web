@@ -27,7 +27,7 @@ function validarEmail(email) {
     return re.test(String(email).toLowerCase());
 }
 
-// --- FUNÇÃO DE VALIDAÇÃO DE DATA (Completo) ---
+// --- FUNÇÃO DE VALIDAÇÃO DE DATA (Formato) ---
 function validarData(data) {
     // Checa se o formato DD/MM/AAAA foi totalmente preenchido
     if (data.length !== 10) return false;
@@ -46,14 +46,108 @@ function validarData(data) {
 
 // --- FUNÇÃO DE VALIDAÇÃO DE CELULAR (11 dígitos) ---
 function validarCelular(celular) {
-    // Remove todos os caracteres não numéricos (parênteses, traço, espaço, ponto)
-    var digitos = celular.replace(/[^\d]/g, '');
+    // Remove todos os caracteres não numéricos (parênteses, traço, espaço, ponto)
+    var digitos = celular.replace(/[^\d]/g, '');
+    
+    // Verifica se tem exatamente 11 dígitos (2 de DDD + 9 do número)
+    return digitos.length === 11;
+}
+
+// --- FUNÇÃO DE VALIDAÇÃO DE IDADE (Maior ou igual a 18) ---
+function isMaisDe18(data) {
+    // Checa se a data tem o formato completo (DD/MM/AAAA)
+    if (data.length !== 10) return false;
+
+    // Converte a string "DD/MM/AAAA" para um objeto Date
+    var partes = data.split('/');
+    var dia = parseInt(partes[0], 10);
+    var mes = parseInt(partes[1], 10) - 1; // Mês é 0-indexado no JS (Jan=0, Fev=1, etc.)
+    var ano = parseInt(partes[2], 10);
     
-    // Verifica se tem exatamente 11 dígitos (2 de DDD + 9 do número)
-    return digitos.length === 11;
+    var dataNasc = new Date(ano, mes, dia);
+    var dataHoje = new Date();
+
+    // Calcula a idade
+    var idade = dataHoje.getFullYear() - dataNasc.getFullYear();
+    var m = dataHoje.getMonth() - dataNasc.getMonth();
+    
+    // Ajusta a idade se o aniversário deste ano ainda não chegou
+    if (m < 0 || (m === 0 && dataHoje.getDate() < dataNasc.getDate())) {
+        idade--;
+    }
+    
+    return idade >= 18;
+}
+
+// --- FUNÇÃO MESTRE (Verifica se o formulário está pronto para enviar) ---
+function checkFormValidity() {
+    
+    // --- GRUPO 1: CAMPOS COM VALIDAÇÃO COMPLEXA ---
+    
+    // 1. Validar Data de Nascimento (Formato E Idade)
+    var dataNasc = $('#id_data_nascimento').val();
+    var dataNascValida = validarData(dataNasc) && isMaisDe18(dataNasc);
+    
+    // 2. Validar CPF
+    var cpf = $('#id_cpf').val();
+    var cpfValido = validarCPF(cpf);
+    
+    // 3. Validar Celular
+    var celular = $('#id_celular').val();
+    var celularValido = validarCelular(celular);
+    
+    // 4. Validar Emails (formato e se batem)
+    var email = $('#id_email').val();
+    var emailConfirm = $('#id_email_confirm').val();
+    var emailValido = validarEmail(email) && (email.toLowerCase() === emailConfirm.toLowerCase());
+
+    
+    // --- GRUPO 2: CAMPOS OBRIGATÓRIOS (SÓ PRECISAM ESTAR PREENCHIDOS) ---
+    // Criamos uma função simples para checar se o valor não está vazio
+    function isPreenchido(selector) {
+        var valor = $(selector).val();
+        return valor && valor.trim().length > 0;
+    }
+    
+    // 5. Validar Campos de Texto
+    var nomeCompletoValido = isPreenchido('#id_nome_completo');
+    var rgValido = isPreenchido('#id_rg');
+    var orgaoExpValido = isPreenchido('#id_rg_orgao_expeditor');
+    var nomeMaeValido = isPreenchido('#id_nome_mae');
+    
+    // 6. Validar Campos de Seleção (Select)
+    var ufRgValido = isPreenchido('#id_rg_uf');
+    var estadoCivilValido = isPreenchido('#id_estado_civil');
+    
+    // (Campos opcionais 'id_nome_pai' e 'id_telefone' não são checados)
+
+
+    // --- A LÓGICA FINAL (AGORA VERIFICA TUDO) ---
+    if (
+        // Grupo 1
+        dataNascValida && 
+        cpfValido && 
+        celularValido && 
+        emailValido &&
+        
+        // Grupo 2
+        nomeCompletoValido &&
+        rgValido &&
+        orgaoExpValido &&
+        nomeMaeValido &&
+        ufRgValido &&
+        estadoCivilValido
+    ) {
+        // Se TUDO for válido, habilita o botão
+        $('#submit_button').prop('disabled', false).css('opacity', '1.0');
+    } else {
+        // Se QUALQUER COISA for inválida, desabilita
+        $('#submit_button').prop('disabled', true).css('opacity', '0.5');
+    }
 }
 
 // --- FUNÇÃO DE FEEDBACK VISUAL (Validação no 'blur') ---
+// (Usada para CPF, Email e Celular)
 function setupValidation(fieldId, errorSpanId, validationFunction, errorMessage, successMessage) {
     $(fieldId).on('blur', function() { 
         var value = $(this).val();
@@ -80,6 +174,9 @@ function setupValidation(fieldId, errorSpanId, validationFunction, errorMessage,
 // --- APLICAÇÃO DAS MÁSCARAS E VALIDAÇÃO ---
 $(document).ready(function(){
     
+    // Desabilita o botão ao carregar a página
+    $('#submit_button').prop('disabled', true).css('opacity', '0.5');
+
     // --- MÁSCARAS ---
     $('#id_cpf').mask('000.000.000-00', {reverse: true});
     $('#id_condutor_cpf').mask('000.000.000-00', {reverse: true});
@@ -96,28 +193,22 @@ $(document).ready(function(){
         placeholder: "00.000.000-0"
     });
     
-    // 1. DATA DE NASCIMENTO (FORÇANDO PREENCHIMENTO COMPLETO E VALIDAÇÃO)
+    // DATAS
     $('#id_data_nascimento').mask('00/00/0000', {selectOnFocus: true});
     $('#id_validade_cnh').mask('00/00/0000', {selectOnFocus: true});
     $('#id_condutor_data_nasc').mask('00/00/0000', {selectOnFocus: true});
     $('#id_condutor_validade_cnh').mask('00/00/0000', {selectOnFocus: true});
     
-    // 2. CELULAR (FORÇANDO PREENCHIMENTO COMPLETO - Digito 9 obrigatório)
-    $('#id_celular').mask('(00) 0.0000-0000', {
-        selectOnFocus: true,
-        onKeyPress: function(cel, e, field, options) {
-            // Pega o valor atual, remove caracteres e vê o tamanho
-            var masks = ['(00) 0.0000-0000', '(00) 0.0000-0000'];
-            var mask = (cel.length > 14) ? masks[1] : masks[0];
-            $('#id_celular').mask(mask, options);
-        }
-    });
+    // CELULAR (com lógica para 8 ou 9 dígitos - embora a validação obrigue 9)
+   $('#id_celular').mask('(00) 0.0000-0000', {selectOnFocus: true});
+
     $('#id_condutor_telefone').mask('(00) 0.0000-0000', {selectOnFocus: true});
     
-    // Telefone Fixo (FORÇANDO PREENCHIMENTO COMPLETO)
+    // TELEFONES FIXOS
     $('#id_telefone').mask('(00) 0000-0000', {selectOnFocus: true}); 
     $('#id_telefone_comercial').mask('(00) 0000-0000', {selectOnFocus: true});
 
+    // CEP
     $('#id_cep_residencial').mask('00000-000', {selectOnFocus: true});
     $('#id_cep_comercial').mask('00000-000', {selectOnFocus: true});
 
@@ -126,14 +217,38 @@ $(document).ready(function(){
     // Validação de CPF
     setupValidation('#id_cpf', '#cpf_validation_message', validarCPF, 'CPF Inválido!', 'CPF Válido');
     
-    // Validação de Data
-    setupValidation('#id_data_nascimento', '#data_nasc_validation_message', validarData, 'Data incompleta ou inválida!', '');
+    // Validação customizada de Data de Nascimento (Formato + Idade)
+    $('#id_data_nascimento').on('blur', function() {
+        var valor = $(this).val();
+        var errorSpan = $('#data_nasc_validation_message');
+        
+        if (valor.length === 0) {
+            // Limpa se o campo estiver vazio
+            $(this).css('border-color', '#ccc');
+            errorSpan.text('');
+        }
+        else if (!validarData(valor)) {
+            // Erro 1: Formato inválido
+            $(this).css('border-color', 'red');
+            errorSpan.text('Data incompleta ou inválida!').css('color', 'red');
+        } 
+        else if (!isMaisDe18(valor)) {
+            // Erro 2: Menor de idade
+            $(this).css('border-color', 'red');
+            errorSpan.text('Você deve ter pelo menos 18 anos.').css('color', 'red');
+        } 
+        else {
+            // Sucesso!
+            $(this).css('border-color', 'green');
+            errorSpan.text('').css('color', 'green'); // Não mostra "DATA OK"
+        }
+    });
 
-    // Validação de Email
+    // Validação de Email (instantâneo)
     setupValidation('#id_email', '#email_validation_message', validarEmail, 'E-mail inválido!', 'E-mail válido');
-    
-    // Validação de Celular
-    setupValidation('#id_celular', '#celular_validation_message', validarCelular, 'Celular incompleto!', '');
+    
+    // Validação de Celular
+    setupValidation('#id_celular', '#celular_validation_message', validarCelular, 'Celular incompleto!', '');
     
     // Validação de Confirmação de Email (compara os campos)
     $('#id_email_confirm').on('blur', function() {
@@ -164,4 +279,13 @@ $(document).ready(function(){
     $('.lowercase-input').on('keyup', function() {
         $(this).val($(this).val().toLowerCase());
     });
+    
+    // --- MASTER CHECK (Dispara a validação mestre) ---
+    // Define TODOS os campos que devem ser checados
+    var camposValidados = '#id_data_nascimento, #id_cpf, #id_celular, #id_email, #id_email_confirm, #id_nome_completo, #id_rg, #id_rg_orgao_expeditor, #id_nome_mae, #id_rg_uf, #id_estado_civil';
+    
+    // Roda a checagem mestre sempre que o usuário sair (blur) ou digitar (keyup) ou mudar (change) em QUALQUER um desses campos
+    $(camposValidados).on('blur keyup change', function() {
+        checkFormValidity();
+    });
 });
