@@ -1,5 +1,5 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth.models import User
+from django.contrib.auth.models import User, Group
 from django.contrib.auth.tokens import default_token_generator
 from django.utils.http import urlsafe_base64_encode
 from django.utils.encoding import force_bytes
@@ -8,20 +8,27 @@ from django.core.mail import EmailMessage
 from django.template.loader import render_to_string
 from django.urls import reverse, reverse_lazy
 from django.db import transaction
-from django.utils.crypto import get_random_string
+from django.utils.crypto import get_random_string # Import que faltava no seu log
 from django.contrib import messages
+from django.http import HttpResponseRedirect # Import que faltava no seu log
 
-# --- NOVOS IMPORTS PARA A ÁREA DO CLIENTE ---
+# Imports das Views Padrão
+from django.contrib.auth.views import (
+    PasswordChangeView, 
+    LoginView, 
+    PasswordResetConfirmView
+)
+# Imports para a Área do Cliente
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic.edit import UpdateView
-# --- FIM DOS NOVOS IMPORTS ---
 
+# Imports dos Nossos Modelos e Forms
 from .models import Cliente
-# Importa OS DOIS formulários
 from .forms import FichaCadastralClienteForm, ClienteManutencaoForm 
 
-# --- VIEW DE CADASTRO PÚBLICO (JÁ FUNCIONANDO) ---
+# --- VIEW DE CADASTRO PÚBLICO (AQUI ESTÁ A CORREÇÃO) ---
+
 @transaction.atomic 
 def cadastro_publico_pf(request):
     if request.method == 'POST':
@@ -34,8 +41,7 @@ def cadastro_publico_pf(request):
             username = email 
             
             try:
-                # 1. Cria a senha temporária para garantir que o User tenha credenciais.
-                # from django.contrib.auth.models import User
+                # 1. Cria a senha temporária
                 senha_temporaria = get_random_string(length=12)
 
                 # 2. Cria o User COM a senha
@@ -43,18 +49,14 @@ def cadastro_publico_pf(request):
                 user.first_name = nome.split(' ')[0] 
                 user.is_active = False # INATIVO (Correto)
                 
-                #3. Salva explicitamente e força o PK a existir
+                #3. Salva
                 user.save()
                 
             except Exception as e:
-                # Se for um erro de duplicidade (IntegrityError)
                 from django.db.utils import IntegrityError
-                
                 if isinstance(e, IntegrityError):
-                    # Tenta dar uma mensagem mais específica
                     msg = "O e-mail ou CPF informado já possui cadastro."
                 else:
-                    # Mensagem genérica com o erro real no console
                     msg = f"Erro desconhecido ao criar conta. ({e})"
                 
                 form.add_error(None, msg)
@@ -67,15 +69,17 @@ def cadastro_publico_pf(request):
             #Geracao do Token e Envio do E-mail:
             current_site = get_current_site(request)
             mail_subject = 'Ative sua conta e crie sua senha - Lider Drive'
+            
+            # --- CORREÇÃO AQUI (PASSO 461) ---
             context = {
                 'user': user,
                 'domain': current_site.domain,
-                # uidb64 Correto
-                'uid': urlsafe_base64_encode(force_bytes(user.pk)),
+                'uidb64': urlsafe_base64_encode(force_bytes(user.pk)), # MUDADO DE 'uid' PARA 'uidb64'
                 'token': default_token_generator.make_token(user),
                 'protocol': 'http',
                 'site_name': current_site.name,
             }
+            # --- FIM DA CORREÇÃO ---
             
             message = render_to_string('registration/password_reset_email.html', context)
             to_email = form.cleaned_data['email']
@@ -95,40 +99,34 @@ def cadastro_publico_pf(request):
     }
     return render(request, 'clientes/cadastro_publico_pf.html', context)
 
-@login_required # Garante que só quem está logado pode entrar
-def area_cliente_logado(request):
-    # Retorna o template que você já criou (area_cliente.html)
-    return render(request, 'clientes/area_cliente.html', {'user': request.user})
-
-
 # View simples para a página de sucesso
 def cadastro_sucesso(request):
     return render(request, 'clientes/cadastro_sucesso.html')
 
 
-# --- PASSO 455: NOVA VIEW SEGURA PARA EDIÇÃO DE DADOS (ÁREA EXCLUSIVA) ---
-
-# LoginRequiredMixin garante que só usuários logados acessem
+# --- VIEW SEGURA PARA EDIÇÃO DE DADOS (ÁREA EXCLUSIVA) ---
 class ClienteManutencaoView(LoginRequiredMixin, UpdateView):
     model = Cliente
     form_class = ClienteManutencaoForm # Usa o formulário completo
     template_name = 'clientes/area_cliente.html' # O template que você já criou
     
-    # Para onde ir após salvar com sucesso? De volta para a mesma página.
     success_url = reverse_lazy('clientes:area_cliente') 
 
-    # 1. GARANTIA DE SEGURANÇA: Esta é a função mais importante.
-    # Ela garante que o usuário logado (request.user) só possa
-    # editar o objeto Cliente que está ligado a ele.
     def get_object(self, queryset=None):
-        # Busca o objeto 'Cliente' que tenha o campo 'user'
-        # igual ao usuário que está logado (self.request.user).
-        # Se ele tentar acessar o 'Cliente' de outro usuário, dará erro 404.
         return get_object_or_404(Cliente, user=self.request.user)
 
-    # 2. (Opcional) Adiciona dados extras ao template
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        # 'object' é o nome padrão que a UpdateView dá ao item sendo editado
         context['nome_cliente'] = self.object.nome_completo 
         return context
+
+# --- VIEW DA ÁREA DO CLIENTE (Placeholder) ---
+@login_required 
+def area_cliente_logado(request):
+    try:
+        # Tenta carregar o formulário de manutenção
+        return ClienteManutencaoView.as_view()(request)
+    except Cliente.DoesNotExist:
+        # Se o cliente foi criado mas o usuário ainda não está ligado a ele
+        # (Isso não deve acontecer no fluxo normal)
+        return render(request, 'clientes/area_cliente_erro.html')
