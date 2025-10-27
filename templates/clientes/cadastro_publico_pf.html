@@ -1,3 +1,5 @@
+<!-- templates/clientes/cadastro_publico_pf.htm-->
+
 {% load static %}
 <!DOCTYPE html>
 <html lang="pt-br">
@@ -34,6 +36,20 @@
         .lowercase-input {
             text-transform: lowercase;
         }
+
+        /* --- NOVO ESTILO: Legenda de Campos Obrigatórios (Estilo que pedimos) --- */
+        .legenda-obrigatorios {
+            font-size: 0.85em; 
+            color: #888; 
+            text-align: left; 
+            margin: 10px 0 20px 0; /* Espaçamento: Topo, direita, baixo, esquerda */
+            padding-left: 20px; /* Alinha com o padding do fieldset */
+        }
+        .legenda-obrigatorios strong {
+            color: #d9534f; /* Cor de destaque (vermelho) para o asterisco */
+            font-weight: bold;
+        }
+        /* --- FIM NOVO ESTILO --- */
 
         /* (Req 2) Container para o Label + Mensagem */
         .label-container {
@@ -74,7 +90,9 @@
                         <p class="errorlist" style="text-align: center; background-color: #ffdddd; padding: 10px; border-radius: 4px;">{{ error }}</p>
                     {% endfor %}
                 {% endif %}
-
+                
+                {# AQUI ESTAVA FALTANDO A NOVA DIV DA LEGENDA #}
+                
                 {# LINHA 1: NOME COMPLETO (FULL WIDTH) #}
                 <div class="form-grid">
                     <div class="form-row full-width">
@@ -152,7 +170,7 @@
                         {{ form.celular }}
                         {{ form.celular.errors }}
                         <span id="celular_validation_message" class="validation-message"></span>
-                     </div>
+                    </div>
                 </div>
 
                 {# LINHA 6: EMAIL - CONFIRMAR EMAIL (2 COLUNAS DE TAMANHO IGUAL) #}
@@ -175,7 +193,8 @@
                     </div>
                 </div>
             </fieldset>
-
+            
+            <p class="legenda-obrigatorios">Campos com <strong>(*)</strong> são de preenchimento obrigatório.</p>
             <div class="submit-row" style="text-align: center;">
                 <button type="submit" id="submit_button">Criar Conta e Validar E-mail</button>
             </div>

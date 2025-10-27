@@ -1,9 +1,12 @@
+# clientes/forms.py
+
 from django import forms
 from .models import Cliente
 from django.contrib.auth.models import User
 import re # Para limpar o CPF
 
 # --- FUNÇÃO DE VALIDAÇÃO DE CPF (Algoritmo) ---
+# ESTA FUNÇÃO FOI RESTAURADA AQUI
 def validate_cpf_algorithm(cpf_limpo):
     if len(cpf_limpo) != 11 or cpf_limpo == cpf_limpo[0] * 11:
         return False
@@ -45,23 +48,28 @@ ESTADO_CIVIL_CHOICES = [
 # --- FIM DAS OPÇÕES ---
 
 
-# --- FORMULÁRIO PARA A FASE 1 (Auto-Registro - JÁ FUNCIONA) ---
+# --- FORMULÁRIO PARA A FASE 1 (Auto-Registro - CORRIGIDO) ---
 class FichaCadastralClienteForm(forms.ModelForm):
     
-    email_confirm = forms.EmailField(label='Confirme seu E-mail') 
-    nome_completo = forms.CharField(label='Nome Completo', widget=forms.TextInput(attrs={'required': True, 'class': 'uppercase-input'}))
-    data_nascimento = forms.DateField(label='Data de Nascimento', widget=forms.TextInput(attrs={'placeholder': 'DD/MM/AAAA', 'required': True}))
-    cpf = forms.CharField(label='CPF', widget=forms.TextInput(attrs={'placeholder': '000.000.000-00', 'required': True}))
-    rg = forms.CharField(label='RG', required=True, widget=forms.TextInput(attrs={'required': True, 'class': 'uppercase-input'}))
-    rg_uf = forms.ChoiceField(label='UF RG', choices=UF_CHOICES, widget=forms.Select(attrs={'required': True}))
-    rg_orgao_expeditor = forms.CharField(label='Órgão Expedidor', widget=forms.TextInput(attrs={'required': True, 'class': 'uppercase-input'}))
-    estado_civil = forms.ChoiceField(label='Estado Civil', choices=ESTADO_CIVIL_CHOICES, widget=forms.Select(attrs={'required': True}))
-    nome_mae = forms.CharField(label='Nome da Mãe', widget=forms.TextInput(attrs={'required': True, 'class': 'uppercase-input'}))
+    # Adicionando (*) aos campos obrigatórios (required=True)
+    nome_completo = forms.CharField(label='Nome Completo (*)', widget=forms.TextInput(attrs={'required': True, 'class': 'uppercase-input'}))
+    data_nascimento = forms.DateField(label='Data de Nascimento (*)', widget=forms.TextInput(attrs={'placeholder': 'DD/MM/AAAA', 'required': True}))
+    cpf = forms.CharField(label='CPF (*)', widget=forms.TextInput(attrs={'placeholder': '000.000.000-00', 'required': True}))
+    rg = forms.CharField(label='RG (*)', required=True, widget=forms.TextInput(attrs={'required': True, 'class': 'uppercase-input'}))
+    rg_uf = forms.ChoiceField(label='UF RG (*)', choices=UF_CHOICES, widget=forms.Select(attrs={'required': True}))
+    rg_orgao_expeditor = forms.CharField(label='Órgão Expedidor (*)', widget=forms.TextInput(attrs={'required': True, 'class': 'uppercase-input'}))
+    estado_civil = forms.ChoiceField(label='Estado Civil (*)', choices=ESTADO_CIVIL_CHOICES, widget=forms.Select(attrs={'required': True}))
+    nome_mae = forms.CharField(label='Nome da Mãe (*)', widget=forms.TextInput(attrs={'required': True, 'class': 'uppercase-input'}))
+    
+    # Estes continuam como antes (não obrigatórios ou especiais)
     nome_pai = forms.CharField(label='Nome do Pai', required=False, widget=forms.TextInput(attrs={'class': 'uppercase-input'}))
-    email = forms.EmailField(label='E-mail', widget=forms.EmailInput(attrs={'required': True, 'class': 'lowercase-input'}))
-    email_confirm = forms.EmailField(label='Confirme seu E-mail', widget=forms.EmailInput(attrs={'required': True, 'class': 'lowercase-input'}))
-    celular = forms.CharField(label='Celular', widget=forms.TextInput(attrs={'required': True, 'placeholder': '(00) 0.0000-0000'}))
     telefone = forms.CharField(label='Telefone (Fixo)', required=False, widget=forms.TextInput(attrs={'placeholder': '(00) 0000-0000'}))
+
+    # Campos de E-mail e Celular (Também obrigatórios)
+    email = forms.EmailField(label='E-mail (*)', widget=forms.EmailInput(attrs={'required': True, 'class': 'lowercase-input'}))
+    email_confirm = forms.EmailField(label='Confirme seu E-mail (*)', widget=forms.EmailInput(attrs={'required': True, 'class': 'lowercase-input'}))
+    celular = forms.CharField(label='Celular (*)', widget=forms.TextInput(attrs={'required': True, 'placeholder': '(00) 0.0000-0000'}))
+    
     
     class Meta:
         model = Cliente
@@ -75,7 +83,7 @@ class FichaCadastralClienteForm(forms.ModelForm):
     def clean_cpf(self):
         cpf = self.cleaned_data.get('cpf')
         cpf_limpo = re.sub(r'[^\d]', '', str(cpf)) 
-        if not validate_cpf_algorithm(cpf_limpo):
+        if not validate_cpf_algorithm(cpf_limpo): # <-- Agora a função é visível
             raise forms.ValidationError('CPF inválido.')
         if Cliente.objects.filter(cpf=cpf_limpo).exists():
             raise forms.ValidationError('Cliente com esse CPF ja cadastrado!')
@@ -84,7 +92,7 @@ class FichaCadastralClienteForm(forms.ModelForm):
     def clean_email(self):
         email = self.cleaned_data.get('email')
         if not email: 
-             return email
+              return email
         if User.objects.filter(email__iexact=email).exists():
             raise forms.ValidationError('Este e-mail já está em uso por outro usuário.')
         return email.lower() 
