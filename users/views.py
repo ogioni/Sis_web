@@ -1,3 +1,5 @@
+#user/views.py 
+
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.models import User, Group
 from django.contrib.auth.tokens import default_token_generator
