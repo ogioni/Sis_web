@@ -1,67 +1,138 @@
-{% load static %}
-<!DOCTYPE html>
-<html lang="pt-br">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login no Sistema</title>
+<!--templates/paginas/login.html-->
 
-    <style>
-        body { 
-            font-family: sans-serif; 
-            display: flex; 
-            justify-content: center; 
-            align-items: center; 
-            height: 100vh; 
-            background-color: #f4f4f4;
-        }
-        form { 
-            background-color: #fff; 
-            padding: 2rem; 
-            border-radius: 8px; 
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-            min-width: 350px;
-        }
-        .logo-container { text-align: center; margin-bottom: 1.5rem; }
-        .form-field { margin-bottom: 1rem; }
-        .form-field label { display: block; margin-bottom: 5px; }
-        .form-field input { width: 95%; padding: 8px; }
-        .actions { display: flex; justify-content: space-between; align-items: center; margin-top: 1.5rem; }
-        button { padding: 10px 15px; background-color: #007bff; color: white; border: none; cursor: pointer; }
-        .errorlist { color: red; list-style: none; padding: 0; margin-bottom: 1rem; }
-    </style>
-</head>
-<body>
+{% extends "admin/base_site.html" %}
+{% load i18n static %}
 
-    <form method="POST">
-        {% csrf_token %} 
+{# Bloco de Estilos: Copia os mesmos estilos do seu admin/login.html #}
+{% block extrastyle %}{{ block.super }}
+<link rel="stylesheet" href="{% static "admin/css/login.css" %}">
+{{ form.media }}
+<style>
+  /* --- ESTILOS VISUAIS (COPIADO DO SEU admin/login.html) --- */
+  html, body {
+    height: 100%; margin: 0; padding: 0;
+    font-family: sans-serif;
+  }
+  body.login {
+    display: flex; justify-content: center; align-items: center;
+    min-height: 100vh;
+  }
+  #header { display: none; }
 
-        <div class="logo-container">
-            <img src="{% static 'logo.png' %}" alt="Logotipo do Sistema" width="150">
-            <h2>Login no Sistema</h2>
-        </div>
+  #container {
+    width: 100%; max-width: 450px; margin: 0 auto;
+    position: relative; 
+  }
+  #content { border: none; padding: 0; }
 
-        {% if form.errors %}
-            <ul class="errorlist">
-                <li>Usuário ou senha inválidos. Tente novamente.</li>
-            </ul>
-        {% endif %}
+  #login-form {
+      padding: 2.5rem; border-radius: 8px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.1); margin-bottom: 1rem; 
+  }
+  #branding {
+      display: flex; flex-direction: column; align-items: center;
+      background: none; box-shadow: none; border: none; margin-bottom: 2rem;
+  }
+  #branding img { width: 200px; height: auto; margin-bottom: 15px; }
+  #branding .login-title { font-size: 1.3em; font-weight: normal; margin: 0; }
+  .form-row { margin-bottom: 1.5rem; }
+  .form-row label {
+      font-size: 1em; text-align: left; display: block; width: 100%;
+      margin-bottom: 5px; font-weight: bold;
+  }
+  .form-row input[type="text"],
+  .form-row input[type="password"] {
+      width: 100%; padding: 12px; border: 1px solid #ccc;
+      border-radius: 4px; box-sizing: border-box;
+  }
+  .errornote {
+      color: #ba2121; background-color: #ffdddd; border: 1px solid #ba2121;
+      border-radius: 4px; padding: 10px; margin-bottom: 1rem; text-align: center;
+  }
+  .submit-row input[type="submit"] {
+      width: 100%; padding: 12px; font-size: 1.1em; margin-top: 1rem;
+      background-color: #0056b3; border: none; border-radius: 4px;
+      color: white; cursor: pointer; font-weight: bold;
+  }
+  .submit-row input[type="submit"]:hover { background-color: #004494; }
+  .password-reset-link-outside, .back-to-home-link {
+      text-align: center; margin-top: 0.8rem; font-size: 0.9em;
+  }
+  /* Espaçamento extra para o novo link */
+  .password-reset-link-outside.extra-link {
+      margin-top: 0.5rem;
+  }
+  .password-reset-link-outside a, .back-to-home-link a {
+      color: #0056b3; text-decoration: none;
+  }
+  .password-reset-link-outside a:hover, .back-to-home-link a:hover {
+      text-decoration: underline;
+  }
+  .theme-toggle-container {
+    position: absolute; top: 10px; right: 10px; z-index: 100;
+  }
+  .theme-toggle { }
+  /* Os estilos de tema claro/escuro virão do 'base_site.html' herdado */
+</style>
+{% endblock %}
 
-        <div class="form-field">
-            <label for="id_username">Usuário:</label>
-            {{ form.username }}
-        </div>
-        <div class="form-field">
-            <label for="id_password">Senha:</label>
-            {{ form.password }}
-        </div>
+{# Blocos para limpar a interface do admin (igual ao seu admin/login.html) #}
+{% block bodyclass %}{{ block.super }} login{% endblock %}
+{% block usertools %}{% endblock %}
+{% block nav-global %}{% endblock %}
+{% block nav-sidebar %}{% endblock %}
+{% block content_title %}{% endblock %}
+{% block breadcrumbs %}{% endblock %}
 
-        <div class="actions">
-            <button type="submit">Entrar</button>
-            {# Link CORRETO para a recuperação de senha padrão #}
-            <a href="{% url 'password_reset' %}">Esqueci minha senha</a> 
-        </div>
-    </form>
+{# Bloco de Conteúdo Principal #}
+{% block content %}
+<div class="theme-toggle-container">
+    {% include "admin/color_theme_toggle.html" %}
+</div>
 
-</body>
-</html> 
+<div id="content-main">
+
+  {% if form.errors and not form.non_field_errors %}
+  <p class="errornote">{% translate "Usuário ou senha inválidos." %}</p>
+  {% endif %}
+  {% if form.non_field_errors %}
+  {% for error in form.non_field_errors %}
+  <p class="errornote">{{ error }}</p>
+  {% endfor %}
+  {% endif %}
+
+  <form method="post" id="login-form">{% csrf_token %}
+
+    <div id="branding">
+        <img src="{% static 'logo.png' %}" alt="Logotipo Lider Drive">
+        <p class="login-title">Acesso ao Sistema</p>
+    </div>
+
+    <div class="form-row">
+        <label for="{{ form.username.id_for_label }}">E-mail (Login):</label> 
+        {{ form.username }}
+    </div>
+    <div class="form-row">
+        <label for="{{ form.password.id_for_label }}">Senha:</label> 
+        {{ form.password }}
+        <input type="hidden" name="next" value="{{ next }}">
+    </div>
+
+    <div class="submit-row">
+      <input type="submit" value="{% translate 'Acessar' %}">
+    </div>
+  </form>
+</div>
+
+<div class="password-reset-link-outside">
+  <a href="{% url 'password_reset' %}">{% translate 'Esqueci minha senha' %}</a>
+</div>
+
+<div class="password-reset-link-outside extra-link">
+  <a href="{% url 'reenviar_ativacao' %}">Não recebeu o e-mail de ativação?</a>
+</div>
+
+<div class="back-to-home-link">
+  <a href="{% url 'home' %}">{% translate 'Voltar para o Início' %}</a>
+</div>
+{% endblock %}

@@ -1,3 +1,5 @@
+# config/settings.py
+
 """
 Django settings for config project.
 """
@@ -96,11 +98,11 @@ SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 # Configurações de Login
 LOGIN_URL = '/login/' # Tela de login principal
 
-# --- MUDANÇA CRÍTICA AQUI (PASSO 462) ---
-# O Django PRECISA desta linha para ativar o redirecionamento customizado
+# --- CORREÇÃO APLICADA AQUI ---
+# Definimos como None para forçar o Django a usar a FUNÇÃO abaixo.
 LOGIN_REDIRECT_URL = '/' 
-LOGIN_REDIRECT_URL_FUNCTION = 'clientes.login_redirect.custom_login_redirect' # APONTA PARA A FUNÇÃO
-# --- FIM DA MUDANÇA ---
+#LOGIN_REDIRECT_URL_FUNCTION = 'clientes.login_redirect.custom_login_redirect' # APONTA PARA A FUNÇÃO "PORTEIRO"
+# --- FIM DA CORREÇÃO ---
 
 # Email Configs
 EMAIL_BACKEND = config('EMAIL_BACKEND', default='django.core.mail.backends.console.EmailBackend') 

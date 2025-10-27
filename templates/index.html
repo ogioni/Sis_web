@@ -1,3 +1,5 @@
+<!--templates/index.html-->
+
 {% load static %}
 <!DOCTYPE html>
 <html lang="pt-br">
@@ -109,7 +111,7 @@
             <p>Sua plataforma completa para gestão de frotas e cadastro.</p>
 
             <div class="button-box">
-                <a href="{% url 'admin:login' %}" class="acesso-restrito">Acesso ao Sistema</a>
+                <a href="{% url 'login' %}" class="acesso-restrito">Acesso ao Sistema</a>
                 <a href="{% url 'clientes:cadastro_publico_pf' %}" class="ficha-cadastro">Ficha Cadastral (Cliente)</a>
             </div>
         </div>
@@ -135,6 +137,7 @@
                     </a>
                 </div>
             </div>
+            
             <div class="footer-links">
                 <div class="links-row-1">
                     <a href="https://www.meuliderdrive.com.br/condicoes-e-avisos-legais" target="_blank">CONDIÇÕES E AVISOS LEGAIS</a>

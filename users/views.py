@@ -1,4 +1,4 @@
-#user/views.py 
+# users/views.py 
 
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.models import User, Group
@@ -29,7 +29,17 @@ class MinhaLoginView(LoginView):
     # Esta view está ligada a /contas/login/, que não estamos usando como principal
     template_name = 'paginas/login.html' 
     redirect_authenticated_user = True
-    # next_page = reverse_lazy('admin:index')
+    
+    # --- CORREÇÃO: ADICIONAR LÓGICA DO PORTEIRO AQUI ---
+    def get_success_url(self):
+        # Se o usuário é staff, redireciona para o admin (portal dos funcionários)
+        if self.request.user.is_staff:
+            return reverse_lazy('admin:index')
+        # Se não for staff (cliente), redireciona para a área exclusiva do cliente
+        else:
+            return reverse_lazy('clientes:area_cliente')
+    # --- FIM DA CORREÇÃO ---
+
 
 class MinhaPasswordChangeView(PasswordChangeView):
     template_name = 'paginas/change_password.html' # (A tela de troca forçada)
@@ -46,10 +56,11 @@ class MinhaPasswordChangeView(PasswordChangeView):
         return super().form_valid(form)
 
 
-# --- VIEW DE CADASTRO PÚBLICO (JÁ FUNCIONANDO) ---
+# --- (RESTANTE DO ARQUIVO) ---
 
 @transaction.atomic 
 def cadastro_publico_pf(request):
+# ... (conteúdo da view de cadastro, sem alterações) ...
     if request.method == 'POST':
         form = FichaCadastralClienteForm(request.POST)
         
@@ -77,7 +88,7 @@ def cadastro_publico_pf(request):
             context = {
                 'user': user,
                 'domain': current_site.domain,
-                'uid': urlsafe_base64_encode(force_bytes(user.pk)),
+                'uidb64': urlsafe_base64_encode(force_bytes(user.pk)), 
                 'token': default_token_generator.make_token(user),
                 'protocol': 'http',
             }
@@ -105,41 +116,62 @@ def cadastro_sucesso(request):
     return render(request, 'clientes/cadastro_sucesso.html')
 
 
-# --- VIEW DE CONFIRMAÇÃO CORRIGIDA (PASSO 448) ---
+# --- VIEW DE CONFIRMAÇÃO DE SENHA ---
 
 class MinhaPasswordResetConfirmView(PasswordResetConfirmView):
     template_name = 'registration/password_reset_confirm.html'
-    success_url = reverse_lazy('admin:login') 
+    success_url = reverse_lazy('login') 
 
-    # (Req 2) Mostra o nome do cliente na tela
+    # (Req 2) Mostra o nome do cliente e o login (e-mail) na tela
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         
         if hasattr(self, 'user') and self.user is not None:
+            context['login_email'] = self.user.email
             try:
                 cliente = Cliente.objects.get(user=self.user)
                 context['nome_completo'] = cliente.nome_completo 
             except Cliente.DoesNotExist:
-                context['nome_completo'] = self.user.username 
+                context['nome_completo'] = self.user.username
         
         return context
 
     # (Req 1) Ativa o usuário quando a senha for criada
     def form_valid(self, form):
-        # --- A CORREÇÃO LÓGICA ESTÁ AQUI ---
-        
-        # 1. Pega o usuário (self.user) que a view PAI (PasswordResetConfirmView) 
-        #    já validou através do link (uid e token)
         user = self.user 
-        
-        # 2. ATIVA O USUÁRIO (TICKET VERDE)
         user.is_active = True
         user.save()
-
-        # 3. Agora que o usuário está ativo,
-        #    chama a função do formulário para salvar a nova senha
-        form.save() # Salva a nova senha
-        
-        # 4. Redireciona manualmente para a URL de sucesso
+        form.save() 
         return HttpResponseRedirect(self.get_success_url())
-        # --- FIM DA CORREÇÃO ---
+
+
+# --- VIEW PARA REENVIAR O LINK DE ATIVAÇÃO ---
+
+def resend_activation_view(request):
+    if request.method == 'POST':
+        email = request.POST.get('email')
+        
+        try:
+            user = User.objects.get(email=email, is_active=False)
+            
+            current_site = get_current_site(request)
+            mail_subject = 'Ative sua conta e crie sua senha - Lider Drive'
+            context = {
+                'user': user,
+                'domain': current_site.domain,
+                'uidb64': urlsafe_base64_encode(force_bytes(user.pk)),
+                'token': default_token_generator.make_token(user),
+                'protocol': 'http',
+            }
+            message = render_to_string('registration/password_reset_email.html', context)
+            email_message = EmailMessage(
+                mail_subject, message, to=[email]
+            )
+            email_message.send() # Envia para o console
+
+        except User.DoesNotExist:
+            pass 
+            
+        return redirect(reverse_lazy('password_reset_done'))
+
+    return render(request, 'registration/resend_active_form.html')

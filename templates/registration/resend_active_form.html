@@ -1,0 +1,99 @@
+<!-- templates/registration/resend_active_form.html-->
+ 
+{% extends "admin/base_site.html" %}
+{% load i18n static %}
+
+{# Bloco de Estilos: Garante o mesmo visual da tela de login principal #}
+{% block extrastyle %}{{ block.super }}
+<link rel="stylesheet" href="{% static "admin/css/login.css" %}">
+<style>
+  /* --- Estilos copiados para centralizar e formatar --- */
+  html, body { height: 100%; margin: 0; padding: 0; font-family: sans-serif; }
+  body.login { display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+  #header { display: none; }
+  #container { width: 100%; max-width: 450px; margin: 0 auto; position: relative; }
+  #content { border: none; padding: 0; }
+  
+  /* --- Estilos para esta caixa específica --- */
+  .auth-box { 
+    padding: 2.5rem; 
+    border-radius: 8px; 
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1); 
+    margin-bottom: 1rem; 
+    background-color: var(--form-bg-color); /* Usa a cor do tema */
+  }
+  .branding { 
+    display: flex; flex-direction: column; align-items: center; 
+    background: none; box-shadow: none; border: none; margin-bottom: 1.5rem; 
+  }
+  .branding img { width: 200px; height: auto; margin-bottom: 15px; }
+  .branding .auth-title { 
+    font-size: 1.3em; font-weight: normal; margin: 0; 
+    color: var(--text-color); /* Usa a cor do tema */
+  }
+  .message p { 
+    color: var(--text-color); /* Usa a cor do tema */
+    margin-bottom: 1.5rem; line-height: 1.6; text-align: left; font-size: 0.9em; 
+  }
+  .form-row label { 
+    font-size: 1em; text-align: left; display: block; width: 100%; 
+    margin-bottom: 5px; color: var(--text-color); font-weight: bold; 
+  }
+  .form-row input[type="email"] { 
+    width: 100%; padding: 12px; border: 1px solid var(--input-border-color); 
+    border-radius: 4px; box-sizing: border-box; 
+    background-color: var(--input-bg-color); color: var(--text-color); 
+  }
+  .submit-row input[type="submit"] { 
+    width: 100%; padding: 12px; font-size: 1.1em; margin-top: 1rem; 
+    background-color: #0056b3; border: none; border-radius: 4px; 
+    color: white; cursor: pointer; font-weight: bold; 
+  }
+  .back-link { text-align: center; margin-top: 1.5rem; font-size: 0.9em; }
+  .back-link a { color: #0056b3; text-decoration: none; }
+  .theme-toggle-container { position: absolute; top: 10px; right: 10px; z-index: 100; }
+</style>
+{% endblock %}
+
+{# Blocos para limpar a interface do admin #}
+{% block bodyclass %}{{ block.super }} login{% endblock %}
+{% block usertools %}{% endblock %}
+{% block nav-global %}{% endblock %}
+{% block nav-sidebar %}{% endblock %}
+{% block content_title %}{% endblock %}
+{% block breadcrumbs %}{% endblock %}
+
+{# Bloco de Conteúdo Principal #}
+{% block content %}
+<div class="theme-toggle-container">
+    {% include "admin/color_theme_toggle.html" %}
+</div>
+
+<div id="content-main">
+  <div class="auth-box"> 
+    <div class="branding">
+        <img src="{% static 'logo.png' %}" alt="Logotipo Lider Drive">
+        <p class="auth-title">{% translate 'Ativar sua conta' %}</p>
+    </div>
+
+    <div class="message">
+        <p>{% translate "Perdeu seu e-mail de ativação? Digite seu endereço de e-mail abaixo e nós o reenviaremos." %}</p>
+    </div>
+
+    <form method="post">
+        {% csrf_token %}
+        <div class="form-row">
+            <label for="id_email">{% translate 'E-mail' %}:</label>
+            <input type="email" name="email" id="id_email" required>
+        </div>
+        <div class="submit-row">
+          <input type="submit" value="{% translate 'Reenviar e-mail de ativação' %}">
+        </div>
+    </form>
+  </div>
+</div>
+
+<div class="back-link">
+    <a href="{% url 'login' %}">{% translate 'Voltar ao Login' %}</a>
+    </div>
+{% endblock %}
