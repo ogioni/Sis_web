@@ -38,18 +38,91 @@ from .forms import (
     validate_cnpj_algorithm
 )
 
-# --- VIEW DO NOVO CADASTRO DINÂMICO (PF/PJ) ---
-# ... (Esta view permanece idêntica, sem alterações) ...
+# --- [MODIFICADO] VIEW DO NOVO CADASTRO DINÂMICO (PF/PJ) ---
+@transaction.atomic # ADICIONADO
 def cadastro_dinamico_view(request):
-    form = FichaCadastralClienteForm()
+    """
+    View para o novo fluxo de cadastro dinâmico.
+    GET: Mostra a verificação.
+    POST: Processa o formulário de cadastro PF.
+    """
+    
+    if request.method == 'POST':
+        # --- INÍCIO DA LÓGICA DE POST (COPIADA DE cadastro_publico_pf) ---
+        form = FichaCadastralClienteForm(request.POST)
+        
+        if form.is_valid():
+            novo_cliente = form.save(commit=False)
+            email = form.cleaned_data['email']
+            nome = form.cleaned_data['nome_completo']
+            username = email 
+            
+            try:
+                senha_temporaria = get_random_string(length=12)
+                user = User.objects.create_user(username=username, email=email, password=senha_temporaria)
+                user.first_name = nome.split(' ')[0] 
+                user.is_active = False 
+                user.save()
+            except Exception as e:
+                from django.db.utils import IntegrityError
+                if isinstance(e, IntegrityError):
+                    msg = "O e-mail ou CPF informado já possui cadastro."
+                else:
+                    msg = f"Erro desconhecido ao criar conta. ({e})"
+                
+                form.add_error(None, msg)
+                # [MODIFICADO] Renderiza o template NOVO com erro
+                context = {
+                    'page_title': 'Novo Cadastro - 1/3',
+                    'form': form, 
+                    'show_form_on_load': True # Força o JS a mostrar o form
+                }
+                return render(request, 'clientes/cadastro_dinamico.html', context)
+
+            novo_cliente.user = user
+            novo_cliente.save() 
+
+            current_site = get_current_site(request)
+            mail_subject = 'Ative sua conta e crie sua senha - Lider Drive'
+            context = {
+                'user': user,
+                'domain': current_site.domain,
+                'uid': urlsafe_base64_encode(force_bytes(user.pk)), 
+                'token': default_token_generator.make_token(user),
+                'protocol': 'http',
+                'site_name': current_site.name,
+            }
+            message = render_to_string('registration/password_reset_email.html', context)
+            to_email = form.cleaned_data['email']
+            email_message = EmailMessage(
+                mail_subject, message, to=[to_email]
+            )
+            email_message.send() 
+            return redirect('clientes:cadastro_sucesso')
+        
+        else:
+            # [Formulário INVÁLIDO] (Ex: Faltou Nome da Mãe)
+            # Deixa o código "cair" para o render abaixo,
+            # mas o `form` agora está populado com os erros.
+            pass
+    
+    else: # request.method == 'GET'
+        form = FichaCadastralClienteForm()
+
+    # --- LÓGICA DE GET (e de POST inválido) ---
     context = {
         'page_title': 'Novo Cadastro - 1/3',
         'form': form, 
     }
+    
+    if request.method == 'POST' and not form.is_valid():
+        # Se for um POST inválido, diz ao template para pular a verificação
+        context['show_form_on_load'] = True
+
     return render(request, 'clientes/cadastro_dinamico.html', context)
 
 
-# --- VIEW DE CADASTRO PÚBLICO (AQUI ESTÁ A CORREÇÃO) ---
+# --- VIEW DE CADASTRO PÚBLICO (LEGADO) ---
 # ... (Esta view permanece idêntica, sem alterações) ...
 @transaction.atomic 
 def cadastro_publico_pf(request):
@@ -75,6 +148,7 @@ def cadastro_publico_pf(request):
                 else:
                     msg = f"Erro desconhecido ao criar conta. ({e})"
                 form.add_error(None, msg)
+                # Renderiza o template ANTIGO
                 return render(request, 'clientes/cadastro_publico_pf.html', {'form': form})
 
             novo_cliente.user = user
@@ -149,7 +223,7 @@ def mask_email(email):
     except Exception:
         return "e-mail cadastrado"
 
-# --- [NOVO] FUNÇÃO AUXILIAR PARA MASCARAR CPF ---
+# --- FUNÇÃO AUXILIAR PARA MASCARAR CPF ---
 def mask_cpf(cpf):
     try:
         cpf_limpo = "".join(filter(str.isdigit, str(cpf)))
@@ -194,7 +268,7 @@ def verificar_documento_ajax(request):
 
             # --- ETAPA 3: Checar Duplicidade (Banco de Dados) ---
             
-            # [MODIFICADO] 3a. Checar E-mail (e buscar CPF associado)
+            # 3a. Checar E-mail (e buscar CPF associado)
             user_qs = User.objects.filter(email__iexact=email)
             if user_qs.exists():
                 user_encontrado = user_qs.first()
@@ -202,11 +276,10 @@ def verificar_documento_ajax(request):
                 cpf_associado_str = "a outra conta" # Fallback
                 
                 try:
-                    # Tenta acessar o 'cliente' (related_name do User para Cliente)
                     if hasattr(user_encontrado, 'cliente'):
                         cpf_associado_str = mask_cpf(user_encontrado.cliente.cpf)
                 except Exception:
-                    pass # Se falhar (ex: admin), usa o fallback
+                    pass 
 
                 msg = f'Este e-mail já está cadastrado (associado ao {cpf_associado_str}). Tente <a href="{reset_url}">recuperar sua senha</a>.'
                 return JsonResponse({'status': 'exists', 'message': msg})

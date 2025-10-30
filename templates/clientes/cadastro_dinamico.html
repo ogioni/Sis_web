@@ -146,7 +146,7 @@
                         {% endfor %}
                     {% endif %}
 
-                    {# ... (Todo o miolo do formulário PF permanece idêntico) ... #}
+                    {# ... (Todo o miolo do formulário PF) ... #}
                     {# LINHA 1: NOME COMPLETO (FULL WIDTH) #}
                     <div class="form-grid">
                         <div class="form-row full-width">
@@ -320,6 +320,36 @@
     <script>
         $(document).ready(function() {
             
+            // --- [MODIFICADO] LÓGICA DE 'show_form_on_load' ---
+            // 1. Passa a variável do Django para o JS como uma string
+            //    (Note as aspas em 'false' para o linter ver uma string)
+            var showFlagString = "{{ show_form_on_load|default:'false'|lower }}";
+
+            // 2. Converte a string "true" ou "false" para um booleano JS
+            var showFormOnLoad = (showFlagString === 'true');
+            // --- FIM DA MODIFICAÇÃO (A linha vermelha deve sumir) ---
+
+            // 3. Verifica se o formulário deve ser exibido
+            if (showFormOnLoad) {
+                $('#bloco_verificacao').hide();
+                $('#form_cadastro_completo').show();
+
+                // 4. Reaplica as travas e máscaras
+                var campoCpfLegado = $('#{{ form.cpf.id_for_label }}');
+                if (campoCpfLegado.val()) { 
+                    campoCpfLegado.prop('readonly', true)
+                                  .attr('tabindex', -1);
+                    campoCpfLegado.mask('000.000.000-00');
+                }
+
+                var campoEmailLegado = $('#{{ form.email.id_for_label }}');
+                if (campoEmailLegado.val()) { 
+                    campoEmailLegado.prop('readonly', true)
+                                    .attr('tabindex', -1);
+                }
+            }
+            // --- FIM DO BLOCO ---
+            
             // --- 1. REFERÊNCIAS E MÁSCARA ---
             var documentoInput = $('#documento_input');
             var emailInput = $('#email_input');
@@ -433,19 +463,17 @@
                             showResultado('sucesso', 'Documento e e-mail válidos. Por favor, complete seu cadastro abaixo.');
                             $('#bloco_verificacao').slideUp();
                             
-                            // [AJUSTADO] Preenche CPF e E-MAIL, trava e remove do TAB
                             var campoCpfLegado = $('#{{ form.cpf.id_for_label }}');
                             campoCpfLegado.val(documento)
                                 .prop('readonly', true)
-                                .attr('tabindex', -1); // <-- AQUI: Remove do TAB
+                                .attr('tabindex', -1); 
                             campoCpfLegado.mask('000.000.000-00');
                             
                             var campoEmailLegado = $('#{{ form.email.id_for_label }}');
                             campoEmailLegado.val(email)
                                 .prop('readonly', true)
-                                .attr('tabindex', -1); // <-- AQUI: Remove do TAB
+                                .attr('tabindex', -1);
                             
-                            // Limpa o campo de confirmação e garante que não está readonly
                             $('#{{ form.email_confirm.id_for_label }}').val('').prop('readonly', false);
                             
                             $('#form_cadastro_completo').slideDown();
