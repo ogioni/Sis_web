@@ -1,11 +1,44 @@
 @echo off
-echo Gerando estrutura de pastas e arquivos do projeto Sis_web...
-
-rem O comando 'tree' gera a arvore.
-rem /F lista os arquivos alem das pastas.
-rem /A usa caracteres simples (ASCII) para as linhas.
-rem Removemos o /O:N que causou o erro.
-tree /F /A > Sis_web_Estrutura.txt
+SETLOCAL EnableDelayedExpansion
 
 echo.
-echo Arquivo 'Sis_web_Estrutura.txt' gerado com sucesso!
+echo ==========================================================
+echo      Gerando ESTRUTURA LIMPA do projeto Sis_web
+echo ==========================================================
+echo.
+
+REM 1. Oculta temporariamente as pastas desnecessarias (ruido)
+echo [INFO] Ocultando pastas de 'ruido' (venv, .git, .vscode)...
+if exist "venv" ( attrib +h venv /S /D > nul )
+if exist ".git" ( attrib +h .git /S /D > nul )
+if exist ".vscode" ( attrib +h .vscode /S /D > nul )
+
+echo [INFO] Ocultando todas as pastas __pycache__...
+for /d /r . %%d in (__pycache__) do (
+    if exist "%%d" (
+        attrib +h "%%d" /S /D > nul
+    )
+)
+
+REM 2. Gera a arvore (agora limpa)
+echo [INFO] Gerando a arvore de arquivos do projeto...
+tree /F /A > Sis_web_Estrutura_Limpa.txt
+
+REM 3. Restaura a visibilidade das pastas (MUITO IMPORTANTE!)
+echo [INFO] Restaurando a visibilidade das pastas...
+if exist "venv" ( attrib -h venv /S /D > nul )
+if exist ".git" ( attrib -h .git /S /D > nul )
+if exist ".vscode" ( attrib -h .vscode /S /D > nul )
+
+for /d /r . %%d in (__pycache__) do (
+    if exist "%%d" (
+        attrib -h "%%d" /S /D > nul
+    )
+)
+
+echo.
+echo ==========================================================
+echo [SUCESSO] Arquivo 'Sis_web_Estrutura_Limpa.txt' gerado!
+echo ==========================================================
+echo.
+pause
