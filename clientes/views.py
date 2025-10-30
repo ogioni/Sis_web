@@ -1,3 +1,5 @@
+# clientes/views.py
+
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.models import User, Group
 from django.contrib.auth.tokens import default_token_generator
@@ -8,9 +10,9 @@ from django.core.mail import EmailMessage
 from django.template.loader import render_to_string
 from django.urls import reverse, reverse_lazy
 from django.db import transaction
-from django.utils.crypto import get_random_string # Import que faltava no seu log
+from django.utils.crypto import get_random_string 
 from django.contrib import messages
-from django.http import HttpResponseRedirect # Import que faltava no seu log
+from django.http import HttpResponseRedirect 
 
 # Imports das Views Padrão
 from django.contrib.auth.views import (
@@ -49,7 +51,7 @@ def cadastro_publico_pf(request):
                 user.first_name = nome.split(' ')[0] 
                 user.is_active = False # INATIVO (Correto)
                 
-                #3. Salva
+                # 3. Salva
                 user.save()
                 
             except Exception as e:
@@ -70,14 +72,14 @@ def cadastro_publico_pf(request):
             current_site = get_current_site(request)
             mail_subject = 'Ative sua conta e crie sua senha - Lider Drive'
             
-            # --- CORREÇÃO AQUI (PASSO 461) ---
+            # --- CORREÇÃO APLICADA AQUI ---
             context = {
                 'user': user,
                 'domain': current_site.domain,
-                'uidb64': urlsafe_base64_encode(force_bytes(user.pk)), # MUDADO DE 'uid' PARA 'uidb64'
+                'uid': urlsafe_base64_encode(force_bytes(user.pk)), # MUDADO DE 'uidb64' PARA 'uid'
                 'token': default_token_generator.make_token(user),
                 'protocol': 'http',
-                'site_name': current_site.name,
+                'site_name': current_site.name, # Mantido, embora o template não use
             }
             # --- FIM DA CORREÇÃO ---
             

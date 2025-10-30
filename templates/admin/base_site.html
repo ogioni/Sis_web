@@ -1,0 +1,11 @@
+<!-- templates/admin/base_site.html-->
+
+{% extends "admin/base.html" %}
+{% load i18n %}
+
+{# Sobrescreve o link do Admin para que ele use o nosso template de Logout #}
+{% block userlinks %}
+    <li class="small">
+        {% include "admin/logout.html" %}
+    </li>
+{% endblock %}

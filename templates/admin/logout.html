@@ -1,0 +1,10 @@
+<!-- templates/admin/logout.html-->
+
+{# Este template substitui o padrão do Django Admin para usar nosso fluxo de logout #}
+{% load i18n %}
+<form id="logout-form" method="post" action="{% url 'logout' %}">
+    {% csrf_token %}
+    <button type="submit" class="button">
+        {% translate 'Encerrar sessão' %}
+    </button>
+</form>

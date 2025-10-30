@@ -26,13 +26,13 @@ from clientes.forms import FichaCadastralClienteForm
 # --- NOSSAS VIEWS DE LOGIN E TROCA FORÇADA (JÁ FUNCIONANDO) ---
 
 class MinhaLoginView(LoginView):
-    # Esta view está ligada a /contas/login/, que não estamos usando como principal
+    # Esta view é a nossa "porta da frente" principal
     template_name = 'paginas/login.html' 
     redirect_authenticated_user = True
     
-    # --- CORREÇÃO: ADICIONAR LÓGICA DO PORTEIRO AQUI ---
+    # --- LÓGICA DO PORTEIRO ---
     def get_success_url(self):
-        # Se o usuário é staff, redireciona para o admin (portal dos funcionários)
+        # Se o usuário é staff, redireciona para o admin
         if self.request.user.is_staff:
             return reverse_lazy('admin:index')
         # Se não for staff (cliente), redireciona para a área exclusiva do cliente
@@ -60,7 +60,6 @@ class MinhaPasswordChangeView(PasswordChangeView):
 
 @transaction.atomic 
 def cadastro_publico_pf(request):
-# ... (conteúdo da view de cadastro, sem alterações) ...
     if request.method == 'POST':
         form = FichaCadastralClienteForm(request.POST)
         
@@ -88,7 +87,7 @@ def cadastro_publico_pf(request):
             context = {
                 'user': user,
                 'domain': current_site.domain,
-                'uidb64': urlsafe_base64_encode(force_bytes(user.pk)), 
+                'uid': urlsafe_base64_encode(force_bytes(user.pk)), # <-- CORRIGIDO AQUI (era uidb64)
                 'token': default_token_generator.make_token(user),
                 'protocol': 'http',
             }
@@ -159,7 +158,7 @@ def resend_activation_view(request):
             context = {
                 'user': user,
                 'domain': current_site.domain,
-                'uidb64': urlsafe_base64_encode(force_bytes(user.pk)),
+                'uid': urlsafe_base64_encode(force_bytes(user.pk)), # <-- CORRIGIDO AQUI (era uidb64)
                 'token': default_token_generator.make_token(user),
                 'protocol': 'http',
             }

@@ -8,17 +8,14 @@ from django.urls import reverse_lazy
 # Importa NOSSAS views customizadas
 from .views import (
     MinhaPasswordChangeView, 
-    MinhaLoginView, # (Vamos manter a importação por enquanto, não quebra)
+    MinhaLoginView, 
     MinhaPasswordResetConfirmView,
     resend_activation_view
 )
 
 urlpatterns = [
-    # 1. URL DE LOGIN DUPLICADA REMOVIDA
-    # A URL 'login' principal agora vive SÓ no config/urls.py
-    # path('login/', MinhaLoginView.as_view(template_name='paginas/login.html'), name='login'),
-    
-    path('logout/', auth_views.LogoutView.as_view(next_page=reverse_lazy('admin:login')), name='logout'), 
+    # 1. URL DE LOGOUT CORRIGIDA: Redireciona para o login PÚBLICO
+    path('logout/', auth_views.LogoutView.as_view(next_page=reverse_lazy('login')), name='logout'), 
     
     path(
         'change_password/', 

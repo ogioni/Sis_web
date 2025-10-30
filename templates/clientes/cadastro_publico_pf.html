@@ -1,5 +1,3 @@
-<!-- templates/clientes/cadastro_publico_pf.htm-->
-
 {% load static %}
 <!DOCTYPE html>
 <html lang="pt-br">
@@ -27,45 +25,36 @@
         
         .full-width { grid-column: 1 / -1; }
         
-        /* (Req 1) Força campos de nome para Maiúsculas (CSS) */
-        .uppercase-input {
-            text-transform: uppercase;
-        }
-        
-        /* (Req 2) Força campos de email para Minúsculas (CSS) */
-        .lowercase-input {
-            text-transform: lowercase;
-        }
+        .uppercase-input { text-transform: uppercase; }
+        .lowercase-input { text-transform: lowercase; }
 
-        /* --- NOVO ESTILO: Legenda de Campos Obrigatórios (Estilo que pedimos) --- */
-        .legenda-obrigatorios {
-            font-size: 0.85em; 
-            color: #888; 
-            text-align: left; 
-            margin: 10px 0 20px 0; /* Espaçamento: Topo, direita, baixo, esquerda */
-            padding-left: 20px; /* Alinha com o padding do fieldset */
-        }
-        .legenda-obrigatorios strong {
-            color: #d9534f; /* Cor de destaque (vermelho) para o asterisco */
-            font-weight: bold;
-        }
-        /* --- FIM NOVO ESTILO --- */
+        .legenda-obrigatorios { font-size: 0.85em; color: #888; text-align: left; margin: 10px 0 20px 0; padding-left: 20px; }
+        .legenda-obrigatorios strong { color: #d9534f; font-weight: bold; }
 
-        /* (Req 2) Container para o Label + Mensagem */
+        /* --- ESTILOS PARA ALINHAMENTO DO RÓTULO E ERRO --- */
         .label-container {
             display: flex;
-            justify-content: space-between; 
+            justify-content: flex-start; /* Força alinhamento à esquerda */
             align-items: baseline; 
         }
+        /* Estilo para mensagens de erro JS e outras validações inline */
         .validation-message {
-            font-size: 0.9em;
+            font-size: 0.85em;
             font-weight: bold;
             margin-left: 10px; 
+            color: red; /* Cor de erro */
+            display: inline;
         }
         
+        /* Estilo para erros do Django, agora também inline */
         .errorlist { 
-            color: red; list-style: none; padding: 0; 
-            margin-top: 5px; font-size: 0.9em; 
+            color: red; 
+            list-style: none; 
+            padding: 0; 
+            margin: 0 0 0 10px; /* Remove margin-top, adiciona left */
+            font-size: 0.85em; /* Mesmo tamanho da outra msg */
+            font-weight: bold; /* Mesmo peso */
+            display: inline; /* A MÁGICA PARA FICAR AO LADO */
         }
         
         .back-link { text-align: center; margin-top: 1.5rem; font-size: 0.9em; }
@@ -87,114 +76,143 @@
                 
                 {% if form.non_field_errors %}
                     {% for error in form.non_field_errors %}
-                        <p class="errorlist" style="text-align: center; background-color: #ffdddd; padding: 10px; border-radius: 4px;">{{ error }}</p>
+                        <p class="errorlist" style="text-align: center; background-color: #ffdddd; padding: 10px; border-radius: 4px; display: block;">{{ error }}</p>
                     {% endfor %}
                 {% endif %}
-                
-                {# AQUI ESTAVA FALTANDO A NOVA DIV DA LEGENDA #}
+
+                <p class="legenda-obrigatorios">Campos com <strong>(*)</strong> são de preenchimento obrigatório.</p>
                 
                 {# LINHA 1: NOME COMPLETO (FULL WIDTH) #}
                 <div class="form-grid">
                     <div class="form-row full-width">
                         <div class="label-container">
                             <label for="{{ form.nome_completo.id_for_label }}">{{ form.nome_completo.label }}:</label>
+                            {{ form.nome_completo.errors|striptags }}
+                            <span id="nome_completo_client_error" class="validation-message"></span> 
                         </div>
                         {{ form.nome_completo }}
-                        {{ form.nome_completo.errors }}
                     </div>
                 </div>
                 
                 {# LINHA 2: DATA NASCIMENTO - CPF - RG #}
                 <div class="form-grid">
                     <div class="form-row">
-                        <label for="{{ form.data_nascimento.id_for_label }}">{{ form.data_nascimento.label }}:</label>
+                        <div class="label-container">
+                            <label for="{{ form.data_nascimento.id_for_label }}">{{ form.data_nascimento.label }}:</label>
+                            {{ form.data_nascimento.errors|striptags }}
+                            <span id="data_nasc_validation_message" class="validation-message"></span>
+                        </div>
                         {{ form.data_nascimento }}
-                        {{ form.data_nascimento.errors }}
-                        <span id="data_nasc_validation_message" class="validation-message"></span>
                     </div>
                     
                     <div class="form-row">
                         <div class="label-container">
                             <label for="{{ form.cpf.id_for_label }}">{{ form.cpf.label }}:</label>
                             <span id="cpf_validation_message" class="validation-message"></span>
+                             {{ form.cpf.errors|striptags }}
                         </div>
                         {{ form.cpf }}
-                        {{ form.cpf.errors }}
                     </div>
                     
                     <div class="form-row">
-                        <label for="{{ form.rg.id_for_label }}">{{ form.rg.label }}:</label>
+                        <div class="label-container">
+                            <label for="{{ form.rg.id_for_label }}">{{ form.rg.label }}:</label>
+                            {{ form.rg.errors|striptags }}
+                        </div>
                         {{ form.rg }}
-                        {{ form.rg.errors }}
                     </div>
 
                     {# LINHA 3: ORGAO EXPEDIDOR - UF RG - ESTADO CIVIL #}
                     <div class="form-row">
-                        <label for="{{ form.rg_orgao_expeditor.id_for_label }}">{{ form.rg_orgao_expeditor.label }}:</label>
+                        <div class="label-container">
+                            <label for="{{ form.rg_orgao_expeditor.id_for_label }}">{{ form.rg_orgao_expeditor.label }}:</label>
+                            {{ form.rg_orgao_expeditor.errors|striptags }}
+                        </div>
                         {{ form.rg_orgao_expeditor }}
-                        {{ form.rg_orgao_expeditor.errors }}
                     </div>
                     <div class="form-row">
-                        <label for="{{ form.rg_uf.id_for_label }}">{{ form.rg_uf.label }}:</label>
-                        {{ form.rg_uf }} {{ form.rg_uf.errors }}
+                        <div class="label-container">
+                            <label for="{{ form.rg_uf.id_for_label }}">{{ form.rg_uf.label }}:</label>
+                            {{ form.rg_uf.errors|striptags }}
+                        </div>
+                        {{ form.rg_uf }}
                     </div>
                     <div class="form-row">
-                        <label for="{{ form.estado_civil.id_for_label }}">{{ form.estado_civil.label }}:</label>
-                        {{ form.estado_civil }} {{ form.estado_civil.errors }}
+                        <div class="label-container">
+                            <label for="{{ form.estado_civil.id_for_label }}">{{ form.estado_civil.label }}:</label>
+                            {{ form.estado_civil.errors|striptags }}
+                        </div>
+                        {{ form.estado_civil }}
                     </div>
                 </div>
 
-                {# LINHA 4: NOME MAE - NOME PAI (2 COLUNAS DE TAMANHO IGUAL) #}
-                <div class="form-row full-width" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
-                    <div class="form-row">
-                        <label for="{{ form.nome_mae.id_for_label }}">{{ form.nome_mae.label }}:</label>
+                {# LINHA 4: NOME DA MÃE (AGORA FULL WIDTH) #}
+                <div class="form-grid">
+                    <div class="form-row full-width">
+                        <div class="label-container">
+                            <label for="{{ form.nome_mae.id_for_label }}">{{ form.nome_mae.label }}:</label>
+                            {{ form.nome_mae.errors|striptags }}
+                            <span id="nome_mae_client_error" class="validation-message"></span> 
+                        </div>
                         {{ form.nome_mae }}
-                        {{ form.nome_mae.errors }}
                     </div>
-                    <div class="form-row">
-                        <label for="{{ form.nome_pai.id_for_label }}">{{ form.nome_pai.label }}:</label>
+                </div>
+
+                {# LINHA 4.1: NOME DO PAI (AGORA FULL WIDTH) #}
+                <div class="form-grid">
+                    <div class="form-row full-width">
+                        <div class="label-container">
+                            <label for="{{ form.nome_pai.id_for_label }}">{{ form.nome_pai.label }}:</label>
+                            {{ form.nome_pai.errors|striptags }}
+                        </div>
                         {{ form.nome_pai }}
-                        {{ form.nome_pai.errors }}
                     </div>
                 </div>
 
-                {# LINHA 5: TELEFONE FIXO - CELULAR (2 COLUNAS DE TAMANHO IGUAL) #}
+               {# LINHA 5: TELEFONE FIXO - CELULAR (VOLTANDO PARA 2 COLUNAS) #}
                 <div class="form-row full-width" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                    {# Célula Telefone #}
                     <div class="form-row">
-                        <label for="{{ form.telefone.id_for_label }}">{{ form.telefone.label }}:</label>
+                        <div class="label-container">
+                            <label for="{{ form.telefone.id_for_label }}">{{ form.telefone.label }}:</label>
+                            {{ form.telefone.errors|striptags }}
+                        </div>
                         {{ form.telefone }}
-                        {{ form.telefone.errors }}
                     </div>
+                    {# Célula Celular #}
                     <div class="form-row">
-                        <label for="{{ form.celular.id_for_label }}">{{ form.celular.label }}:</label>
+                        <div class="label-container">
+                            <label for="{{ form.celular.id_for_label }}">{{ form.celular.label }}:</label>
+                            {{ form.celular.errors|striptags }}
+                            <span id="celular_validation_message" class="validation-message"></span> {# Mantém span para JS, se houver #}
+                        </div>
                         {{ form.celular }}
-                        {{ form.celular.errors }}
-                        <span id="celular_validation_message" class="validation-message"></span>
                     </div>
                 </div>
 
-                {# LINHA 6: EMAIL - CONFIRMAR EMAIL (2 COLUNAS DE TAMANHO IGUAL) #}
+                {# LINHA 6: EMAIL - CONFIRMAR EMAIL (VOLTANDO PARA 2 COLUNAS) #}
                 <div class="form-row full-width" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                    {# Célula Email #}
                     <div class="form-row">
                         <div class="label-container">
                             <label for="{{ form.email.id_for_label }}">{{ form.email.label }}:</label>
-                            <span id="email_validation_message" class="validation-message"></span>
+                            <span id="email_validation_message" class="validation-message"></span> {# Mantém span para JS, se houver #}
+                             {{ form.email.errors|striptags }}
                         </div>
                         {{ form.email }}
-                        {{ form.email.errors }}
                     </div>
+                    {# Célula Confirmar Email #}
                     <div class="form-row">
                         <div class="label-container">
                             <label for="{{ form.email_confirm.id_for_label }}">{{ form.email_confirm.label }}:</label>
-                            <span id="email_confirm_validation_message" class="validation-message"></span>
+                            <span id="email_confirm_validation_message" class="validation-message"></span> {# Mantém span para JS, se houver #}
+                            {{ form.email_confirm.errors|striptags }}
                         </div>
                         {{ form.email_confirm }}
-                        {{ form.email_confirm.errors }}
                     </div>
                 </div>
             </fieldset>
             
-            <p class="legenda-obrigatorios">Campos com <strong>(*)</strong> são de preenchimento obrigatório.</p>
             <div class="submit-row" style="text-align: center;">
                 <button type="submit" id="submit_button">Criar Conta e Validar E-mail</button>
             </div>
@@ -211,6 +229,46 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.mask/1.14.16/jquery.mask.min.js"></script>
     <script src="{% static 'js/mask.js' %}"></script>
     {# --- FIM SCRIPTS --- #}
+
+    <script>
+        // Função REUTILIZÁVEL para validar nomes
+        function validarNome(inputId, errorSpanId, mensagemErro) {
+            const inputElement = document.getElementById(inputId);
+            const errorElement = document.getElementById(errorSpanId);
+            const nome = inputElement.value.trim();
+
+            errorElement.textContent = ''; // Limpa a mensagem de erro anterior
+
+            if (nome === '') { return; } // Só valida se o campo não estiver vazio
+
+            if (nome.includes('.')) {
+                errorElement.textContent = "Nome não pode conter pontos (.).";
+                return;
+            }
+
+            const partes = nome.split(' ').filter(part => part !== '');
+            if (partes.length < 2) {
+                errorElement.textContent = mensagemErro;
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const nomeCompletoInput = document.getElementById('{{ form.nome_completo.id_for_label }}');
+            if (nomeCompletoInput) {
+                nomeCompletoInput.addEventListener('blur', function() {
+                    validarNome('{{ form.nome_completo.id_for_label }}', 'nome_completo_client_error', 'Por favor, informe o nome completo.');
+                });
+            }
+
+            const nomeMaeInput = document.getElementById('{{ form.nome_mae.id_for_label }}');
+            if (nomeMaeInput) {
+                nomeMaeInput.addEventListener('blur', function() {
+                    validarNome('{{ form.nome_mae.id_for_label }}', 'nome_mae_client_error', 'Por favor, informe o nome completo da mãe.');
+                });
+            }
+        });
+    </script>
+
 
 </body>
 </html>

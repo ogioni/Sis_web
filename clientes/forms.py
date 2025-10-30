@@ -6,7 +6,7 @@ from django.contrib.auth.models import User
 import re # Para limpar o CPF
 
 # --- FUNÇÃO DE VALIDAÇÃO DE CPF (Algoritmo) ---
-# ESTA FUNÇÃO FOI RESTAURADA AQUI
+# ... (manter igual) ...
 def validate_cpf_algorithm(cpf_limpo):
     if len(cpf_limpo) != 11 or cpf_limpo == cpf_limpo[0] * 11:
         return False
@@ -43,12 +43,12 @@ UF_CHOICES = [
 ESTADO_CIVIL_CHOICES = [
     ('', 'Selecione...'), ('SOLTEIRO(A)', 'SOLTEIRO(A)'),
     ('CASADO(A)', 'CASADO(A)'), ('SEPARADO(A)', 'SEPARADO(A)'),
-    ('DIVORCIADO(A)', 'DIVORCIADO(A)'), ('VIUVO(A)', 'VIÚVO(A)'), 
+    ('DIVORCIADO(A)', 'DIVORCIADO(A)'), ('VIUVO(A)', 'VIÚVO(A)'),
 ]
 # --- FIM DAS OPÇÕES ---
 
 
-# --- FORMULÁRIO PARA A FASE 1 (Auto-Registro - CORRIGIDO) ---
+# --- FORMULÁRIO PARA A FASE 1 (Auto-Registro - COM NOVAS VALIDAÇÕES) ---
 class FichaCadastralClienteForm(forms.ModelForm):
     
     # Adicionando (*) aos campos obrigatórios (required=True)
@@ -80,11 +80,36 @@ class FichaCadastralClienteForm(forms.ModelForm):
             'email', 'email_confirm'
         ]
 
+    # --- INÍCIO DAS NOVAS VALIDAÇÕES ---
+    def clean_nome_completo(self):
+        nome = self.cleaned_data.get('nome_completo')
+        if nome:
+            if '.' in nome:
+                raise forms.ValidationError("Nome não pode conter pontos (.).")
+            # Remove espaços extras antes de dividir para evitar contagem errada
+            partes = [parte for parte in nome.split(' ') if parte] 
+            if len(partes) < 2:
+                raise forms.ValidationError("Por favor, informe o nome completo.")
+        return nome
+
+    def clean_nome_mae(self):
+        nome = self.cleaned_data.get('nome_mae')
+        if nome:
+            if '.' in nome:
+                raise forms.ValidationError("Nome da mãe não pode conter pontos (.).")
+            # Remove espaços extras antes de dividir
+            partes = [parte for parte in nome.split(' ') if parte]
+            if len(partes) < 2:
+                raise forms.ValidationError("Por favor, informe o nome completo da mãe.")
+        return nome
+    # --- FIM DAS NOVAS VALIDAÇÕES ---
+
     def clean_cpf(self):
         cpf = self.cleaned_data.get('cpf')
         cpf_limpo = re.sub(r'[^\d]', '', str(cpf)) 
-        if not validate_cpf_algorithm(cpf_limpo): # <-- Agora a função é visível
+        if not validate_cpf_algorithm(cpf_limpo):
             raise forms.ValidationError('CPF inválido.')
+        # Verifica duplicidade APENAS se o CPF for válido
         if Cliente.objects.filter(cpf=cpf_limpo).exists():
             raise forms.ValidationError('Cliente com esse CPF ja cadastrado!')
         return cpf_limpo 
@@ -112,39 +137,30 @@ class FichaCadastralClienteForm(forms.ModelForm):
         return cleaned_data
 
 # ---
-# --- PASSO 454 (O NOVO CÓDIGO) ---
-# ---
 # --- FORMULÁRIO PARA A FASE 3 (Manutenção da Ficha Completa) ---
-# --- Este formulário será usado pelo cliente logado para ATUALIZAR seus dados ---
-
+# ... (manter a classe ClienteManutencaoForm igual) ...
 class ClienteManutencaoForm(forms.ModelForm):
     
     class Meta:
         model = Cliente
-        # Pega TODOS os campos do Modelo Cliente
         fields = '__all__'
-        
-        # Exclui os campos que o cliente NÃO PODE editar
         exclude = ('user', 'data_cadastro', 'ativo', 'tipo_pessoa')
-        
-        # Opcional: Adicionar classes CSS para máscaras e uppercase
-        # (O JS vai pegar os IDs, então isso é mais para o 'uppercase-input')
         widgets = {
             # --- Dados Pessoais ---
             'nome_completo': forms.TextInput(attrs={'class': 'uppercase-input'}),
             'data_nascimento': forms.TextInput(attrs={'placeholder': 'DD/MM/AAAA'}),
-            'cpf': forms.TextInput(attrs={'readonly': True}), # Não deixa mudar o CPF
+            'cpf': forms.TextInput(attrs={'readonly': True}), 
             'rg': forms.TextInput(attrs={'class': 'uppercase-input'}),
             'rg_orgao_expeditor': forms.TextInput(attrs={'class': 'uppercase-input'}),
-            'rg_uf': forms.Select(), # As opções virão do modelo
+            'rg_uf': forms.Select(), 
             'cnh': forms.TextInput(attrs={'class': 'uppercase-input'}),
             'validade_cnh': forms.TextInput(attrs={'placeholder': 'DD/MM/AAAA'}),
             'nome_mae': forms.TextInput(attrs={'class': 'uppercase-input'}),
             'nome_pai': forms.TextInput(attrs={'class': 'uppercase-input'}),
-            'estado_civil': forms.Select(), # As opções virão do modelo
+            'estado_civil': forms.Select(), 
             
             # Contato
-            'email': forms.EmailInput(attrs={'readonly': True}), # Não deixa mudar o email (username)
+            'email': forms.EmailInput(attrs={'readonly': True}), 
             'telefone': forms.TextInput(attrs={'placeholder': '(00) 0000-0000'}),
             'celular': forms.TextInput(attrs={'placeholder': '(00) 0.0000-0000'}),
 
