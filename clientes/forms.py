@@ -6,7 +6,6 @@ from django.contrib.auth.models import User
 import re # Para limpar o CPF
 
 # --- FUNÇÃO DE VALIDAÇÃO DE CPF (Algoritmo) ---
-# ... (manter igual) ...
 def validate_cpf_algorithm(cpf_limpo):
     if len(cpf_limpo) != 11 or cpf_limpo == cpf_limpo[0] * 11:
         return False
@@ -27,7 +26,38 @@ def validate_cpf_algorithm(cpf_limpo):
     if rev != int(cpf_limpo[10]):
         return False
     return True
-# --- FIM DA FUNÇÃO ---
+# --- FIM DA FUNÇÃO CPF ---
+
+# --- [NOVO] FUNÇÃO DE VALIDAÇÃO DE CNPJ (Algoritmo) ---
+def validate_cnpj_algorithm(cnpj_limpo):
+    if len(cnpj_limpo) != 14 or cnpj_limpo == cnpj_limpo[0] * 14:
+        return False
+
+    def calcular_digito(digitos, pesos):
+        soma = sum(int(d) * p for d, p in zip(digitos, pesos))
+        resto = soma % 11
+        return 0 if resto < 2 else 11 - resto
+
+    # Pesos para o primeiro dígito
+    pesos1 = [5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2]
+    # Pesos para o segundo dígito
+    pesos2 = [6, 5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2]
+
+    # Calcula primeiro dígito
+    digitos_base1 = cnpj_limpo[:12]
+    dv1 = calcular_digito(digitos_base1, pesos1)
+    if dv1 != int(cnpj_limpo[12]):
+        return False
+
+    # Calcula segundo dígito
+    digitos_base2 = cnpj_limpo[:13] # Inclui o primeiro dígito calculado
+    dv2 = calcular_digito(digitos_base2, pesos2)
+    if dv2 != int(cnpj_limpo[13]):
+        return False
+
+    return True
+# --- FIM DA FUNÇÃO CNPJ ---
+
 
 # --- OPÇÕES PARA OS DROPDOWNS (SELECTS) ---
 UF_CHOICES = [

@@ -7,7 +7,6 @@ C:.
 |   db.sqlite3
 |   estrutura.bat
 |   manage.py
-|   projeto_estrutura.txt
 |   requirements.txt
 |   restaura.bat
 |   run.bat
@@ -55,8 +54,13 @@ C:.
 |   |   index.html
 |   |   
 |   +---admin
-|   |       login.html
-|   |       
+|   |   |   base_site.html
+|   |   |   login.html
+|   |   |   logout.html
+|   |   |   
+|   |   \---includes
+|   |           user_tools.html
+|   |           
 |   +---clientes
 |   |       area_cliente.html
 |   |       cadastro_publico_pf.html

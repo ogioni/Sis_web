@@ -1,0 +1,476 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ page_title|default:"Novo Cadastro" }} - Lider Drive</title>
+    <style>
+        body { font-family: sans-serif; background-color: #f4f4f4; margin: 0; padding: 20px;}
+        .container { max-width: 900px; margin: 20px auto; background-color: #fff; padding: 2.5rem; border-radius: 8px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+        .branding { display: flex; flex-direction: column; align-items: center; margin-bottom: 2rem; }
+        .branding img { width: 150px; margin-bottom: 15px; }
+        .branding .auth-title { color: #0056b3; font-size: 1.5em; font-weight: bold; margin: 0; }
+        
+        fieldset { border: 1px solid #ccc; border-radius: 4px; padding: 20px; margin-bottom: 20px; }
+        legend { font-weight: bold; font-size: 1.2em; color: #0056b3; padding: 0 10px; }
+        
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; }
+        
+        .form-row { display: flex; flex-direction: column; }
+        .form-row label { font-size: 0.9em; margin-bottom: 5px; color: #555; font-weight: bold; text-align: left; }
+        .form-row input, .form-row select { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+        .submit-row { text-align: center; margin-top: 20px; }
+        .submit-row button { padding: 12px 30px; font-size: 1.1em; background-color: #38a169; color: white; border: none; border-radius: 44px; cursor: pointer; font-weight: bold; }
+        
+        .full-width { grid-column: 1 / -1; }
+        
+        .uppercase-input { text-transform: uppercase; }
+        .lowercase-input { text-transform: lowercase; }
+
+        .legenda-obrigatorios { font-size: 0.85em; color: #888; text-align: left; margin: 10px 0 20px 0; padding-left: 20px; }
+        .legenda-obrigatorios strong { color: #d9534f; font-weight: bold; }
+
+        .label-container {
+            display: flex;
+            justify-content: flex-start;
+            align-items: baseline; 
+        }
+        .validation-message {
+            font-size: 0.85em;
+            font-weight: bold;
+            margin-left: 10px; 
+            color: red;
+            display: inline;
+        }
+        .errorlist { 
+            color: red; 
+            list-style: none; 
+            padding: 0; 
+            margin: 0 0 0 10px;
+            font-size: 0.85em;
+            font-weight: bold;
+            display: inline;
+        }
+        
+        .back-link { text-align: center; margin-top: 1.5rem; font-size: 0.9em; }
+        .back-link a { color: #0056b3; text-decoration: none; }
+
+        /* --- ESTILOS PARA VERIFICAÇÃO --- */
+        #bloco_verificacao { text-align: center; }
+        .verificacao-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            max-width: 700px;
+            margin: 10px auto;
+        }
+        #bloco_verificacao .form-row input { 
+            margin: 10px auto; 
+            text-align: center; 
+            font-size: 1.1em; 
+            padding: 12px;
+            width: 100%;
+        }
+        #bloco_verificacao .submit-row button { 
+            background-color: #0056b3; 
+        }
+        #bloco_verificacao .submit-row button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+        @media (max-width: 600px) {
+            .verificacao-grid { grid-template-columns: 1fr; }
+        }
+
+        #verificacao_resultado { 
+            display: none; 
+            padding: 15px; 
+            margin: 20px auto; 
+            max-width: 80%; 
+            border-radius: 4px; 
+            font-weight: bold;
+            text-align: center;
+            line-height: 1.6;
+        }
+        .resultado-sucesso { background-color: #d4edda; color: #155724; }
+        .resultado-aviso { background-color: #fff3cd; color: #856404; }
+        .resultado-erro { background-color: #f8d7da; color: #721c24; }
+        
+        .hidden-form { display: none; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <form method="POST" id="form_cadastro_principal">
+            {% csrf_token %}
+            
+            <div class="branding">
+                <img src="{% static 'logo.png' %}" alt="Logotipo Lider Drive">
+                <p class="auth-title">{{ page_title|default:"Novo Cadastro" }}</p>
+            </div>
+
+            <fieldset id="bloco_verificacao">
+                <legend>Identificação</legend>
+                
+                <div class="verificacao-grid">
+                    <div class="form-row">
+                        <label for="documento_input" style="text-align: center;">CPF ou CNPJ</label>
+                        <input type="text" id="documento_input" name="documento_input" placeholder="000.000.000-00">
+                        <span id="doc_validation_message" class="validation-message" style="margin: 5px auto 0 auto;"></span>
+                    </div>
+                    
+                    <div class="form-row">
+                        <label for="email_input" style="text-align: center;">Seu E-mail</label>
+                        <input type="email" id="email_input" name="email_input" placeholder="seuemail@dominio.com" class="lowercase-input">
+                        <span id="email_validation_message" class="validation-message" style="margin: 5px auto 0 auto;"></span>
+                    </div>
+                </div>
+
+                <div class="submit-row">
+                    <button type="button" id="btn_verificar_doc">Verificar</button>
+                </div>
+            </fieldset>
+            
+            <div id="verificacao_resultado"></div>
+
+            <div id="form_cadastro_completo" class="hidden-form">
+                
+                <fieldset>
+                    <legend>Dados Pessoais (Formulário PF)</legend>
+                    
+                    {% if form.non_field_errors %}
+                        {% for error in form.non_field_errors %}
+                            <p class="errorlist" style="text-align: center; background-color: #ffdddd; padding: 10px; border-radius: 4px; display: block;">{{ error }}</p>
+                        {% endfor %}
+                    {% endif %}
+
+                    {# ... (Todo o miolo do formulário PF permanece idêntico) ... #}
+                    {# LINHA 1: NOME COMPLETO (FULL WIDTH) #}
+                    <div class="form-grid">
+                        <div class="form-row full-width">
+                            <div class="label-container">
+                                <label for="{{ form.nome_completo.id_for_label }}">{{ form.nome_completo.label }}:</label>
+                                {{ form.nome_completo.errors|striptags }}
+                                <span id="nome_completo_client_error" class="validation-message"></span> 
+                            </div>
+                            {{ form.nome_completo }}
+                        </div>
+                    </div>
+                    {# LINHA 2: DATA NASCIMENTO - CPF - RG #}
+                    <div class="form-grid">
+                        <div class="form-row">
+                            <div class="label-container">
+                                <label for="{{ form.data_nascimento.id_for_label }}">{{ form.data_nascimento.label }}:</label>
+                                {{ form.data_nascimento.errors|striptags }}
+                                <span id="data_nasc_validation_message" class="validation-message"></span>
+                            </div>
+                            {{ form.data_nascimento }}
+                        </div>
+                        <div class="form-row">
+                            <div class="label-container">
+                                <label for="{{ form.cpf.id_for_label }}">{{ form.cpf.label }}:</label>
+                                <span id="cpf_validation_message" class="validation-message"></span>
+                                {{ form.cpf.errors|striptags }}
+                            </div>
+                            {{ form.cpf }}
+                        </div>
+                        <div class="form-row">
+                            <div class="label-container">
+                                <label for="{{ form.rg.id_for_label }}">{{ form.rg.label }}:</label>
+                                {{ form.rg.errors|striptags }}
+                            </div>
+                            {{ form.rg }}
+                        </div>
+                        {# ... (Restante dos campos PF) ... #}
+                        {# LINHA 3 ... #}
+                        <div class="form-row">
+                            <div class="label-container">
+                                <label for="{{ form.rg_orgao_expeditor.id_for_label }}">{{ form.rg_orgao_expeditor.label }}:</label>
+                                {{ form.rg_orgao_expeditor.errors|striptags }}
+                            </div>
+                            {{ form.rg_orgao_expeditor }}
+                        </div>
+                        <div class="form-row">
+                            <div class="label-container">
+                                <label for="{{ form.rg_uf.id_for_label }}">{{ form.rg_uf.label }}:</label>
+                                {{ form.rg_uf.errors|striptags }}
+                            </div>
+                            {{ form.rg_uf }}
+                        </div>
+                        <div class="form-row">
+                            <div class="label-container">
+                                <label for="{{ form.estado_civil.id_for_label }}">{{ form.estado_civil.label }}:</label>
+                                {{ form.estado_civil.errors|striptags }}
+                            </div>
+                            {{ form.estado_civil }}
+                        </div>
+                    </div>
+                    {# LINHA 4 ... #}
+                    <div class="form-grid">
+                        <div class="form-row full-width">
+                            <div class="label-container">
+                                <label for="{{ form.nome_mae.id_for_label }}">{{ form.nome_mae.label }}:</label>
+                                {{ form.nome_mae.errors|striptags }}
+                                <span id="nome_mae_client_error" class="validation-message"></span> 
+                            </div>
+                            {{ form.nome_mae }}
+                        </div>
+                    </div>
+                    {# LINHA 4.1 ... #}
+                    <div class="form-grid">
+                        <div class="form-row full-width">
+                            <div class="label-container">
+                                <label for="{{ form.nome_pai.id_for_label }}">{{ form.nome_pai.label }}:</label>
+                                {{ form.nome_pai.errors|striptags }}
+                            </div>
+                            {{ form.nome_pai }}
+                        </div>
+                    </div>
+                    {# LINHA 5 ... #}
+                    <div class="form-row full-width" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                        <div class="form-row">
+                            <div class="label-container">
+                                <label for="{{ form.telefone.id_for_label }}">{{ form.telefone.label }}:</label>
+                                {{ form.telefone.errors|striptags }}
+                            </div>
+                            {{ form.telefone }}
+                        </div>
+                        <div class="form-row">
+                            <div class="label-container">
+                                <label for="{{ form.celular.id_for_label }}">{{ form.celular.label }}:</label>
+                                {{ form.celular.errors|striptags }}
+                                <span id="celular_validation_message" class="validation-message"></span>
+                            </div>
+                            {{ form.celular }}
+                        </div>
+                    </div>
+
+                    {# LINHA 6: EMAIL - CONFIRMAR EMAIL #}
+                    <div class="form-row full-width" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                        <div class="form-row">
+                            <div class="label-container">
+                                <label for="{{ form.email.id_for_label }}">{{ form.email.label }}:</label>
+                                <span id="email_validation_message" class="validation-message"></span>
+                                {{ form.email.errors|striptags }}
+                            </div>
+                            {{ form.email }}
+                        </div>
+                        <div class="form-row">
+                            <div class="label-container">
+                                <label for="{{ form.email_confirm.id_for_label }}">{{ form.email_confirm.label }}:</label>
+                                <span id="email_confirm_validation_message" class="validation-message"></span>
+                                {{ form.email_confirm.errors|striptags }}
+                            </div>
+                            {{ form.email_confirm }}
+                        </div>
+                    </div>
+                    <p class="legenda-obrigatorios">Campos com <strong>(*)</strong> são de preenchimento obrigatório.</p>
+                </fieldset>
+
+                <div class="submit-row" style="text-align: center;">
+                    <button type="submit" id="submit_button">Criar Conta e Validar E-mail</button>
+                </div>
+            </div> </form> <div class="back-link">
+            <a href="javascript:location.reload();">Voltar</a>
+        </div>
+    </div>
+    
+    {# --- SCRIPTS DE MÁSCARA (NO FIM DO BODY) --- #}
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.mask/1.14.16/jquery.mask.min.js"></script>
+    <script src="{% static 'js/mask.js' %}"></script>
+    {# --- FIM SCRIPTS --- #}
+
+    <script>
+        // ... (Função validarNome e listeners DOMContentLoaded permanecem idênticos) ...
+        function validarNome(inputId, errorSpanId, mensagemErro) {
+            const inputElement = document.getElementById(inputId);
+            if (!inputElement) return; 
+            const errorElement = document.getElementById(errorSpanId);
+            const nome = inputElement.value.trim();
+            errorElement.textContent = ''; 
+            if (nome === '') { return; } 
+            if (nome.includes('.')) {
+                errorElement.textContent = "Nome não pode conter pontos (.).";
+                return;
+            }
+            const partes = nome.split(' ').filter(part => part !== '');
+            if (partes.length < 2) {
+                errorElement.textContent = mensagemErro;
+            }
+        }
+        document.addEventListener('DOMContentLoaded', function() {
+            const nomeCompletoInput = document.getElementById('{{ form.nome_completo.id_for_label }}');
+            if (nomeCompletoInput) {
+                nomeCompletoInput.addEventListener('blur', function() {
+                    validarNome('{{ form.nome_completo.id_for_label }}', 'nome_completo_client_error', 'Por favor, informe o nome completo.');
+                });
+            }
+            const nomeMaeInput = document.getElementById('{{ form.nome_mae.id_for_label }}');
+            if (nomeMaeInput) {
+                nomeMaeInput.addEventListener('blur', function() {
+                    validarNome('{{ form.nome_mae.id_for_label }}', 'nome_mae_client_error', 'Por favor, informe o nome completo da mãe.');
+                });
+            }
+        });
+    </script>
+
+    <script>
+        $(document).ready(function() {
+            
+            // --- 1. REFERÊNCIAS E MÁSCARA ---
+            var documentoInput = $('#documento_input');
+            var emailInput = $('#email_input');
+            
+            var docValidationMessage = $('#doc_validation_message');
+            var emailValidationMessage = $('#email_validation_message');
+            
+            var btnVerificar = $('#btn_verificar_doc');
+            var resultadoDiv = $('#verificacao_resultado');
+            
+            var emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+            var options = {
+                onKeyPress: function(doc, e, field, options) {
+                    var masks = ['000.000.000-009', '00.000.000/0000-00'];
+                    var mask = (doc.length > 14) ? masks[1] : masks[0];
+                    documentoInput.mask(mask, options);
+                }
+            };
+            documentoInput.mask('000.000.000-009', options);
+            btnVerificar.prop('disabled', true); 
+
+            // --- 2. VALIDAÇÃO DE INPUT (SILENCIOSA) ---
+            var docValido = false;
+            var emailValido = false;
+
+            function validarCampos() {
+                var doc = documentoInput.val().replace(/\D/g, '');
+                var email = emailInput.val();
+
+                if (doc.length == 11 || doc.length == 14) {
+                    docValido = true;
+                    docValidationMessage.text(''); 
+                } else {
+                    docValido = false;
+                }
+
+                if (emailRegex.test(email)) {
+                    emailValido = true;
+                    emailValidationMessage.text('');
+                } else {
+                    emailValido = false;
+                }
+                btnVerificar.prop('disabled', !(docValido && emailValido));
+            }
+
+            documentoInput.on('input keyup', validarCampos);
+            emailInput.on('input keyup', validarCampos);
+
+            // --- BLOQUEIA 'COLAR' NO CAMPO DE CONFIRMAÇÃO DE E-MAIL ---
+            $('#{{ form.email_confirm.id_for_label }}').on('paste', function(e) {
+                e.preventDefault();
+                var msgSpan = $('#email_confirm_validation_message');
+                msgSpan.text('Colar não é permitido.');
+                setTimeout(function() { msgSpan.text(''); }, 2000);
+            });
+
+
+            // --- 3. LÓGICA AJAX ---
+            
+            function resetResultado() {
+                resultadoDiv.hide().text('').removeClass('resultado-sucesso resultado-aviso resultado-erro');
+            }
+            function showResultado(tipo, mensagemHtml) {
+                resetResultado();
+                resultadoDiv.addClass('resultado-' + tipo).html(mensagemHtml).slideDown();
+            }
+
+            btnVerificar.on('click', function() {
+                var documento = documentoInput.val();
+                var email = emailInput.val();
+                var docLimpo = documento.replace(/\D/g, '');
+                var csrfToken = $('input[name="csrfmiddlewaretoken"]').val();
+                
+                resetResultado(); 
+                docValidationMessage.text('');
+                emailValidationMessage.text('');
+
+                var camposOk = true;
+                if (docLimpo.length !== 11 && docLimpo.length !== 14) {
+                    docValidationMessage.text('CPF ou CNPJ incompleto');
+                    camposOk = false;
+                }
+                if (!emailRegex.test(email)) {
+                    emailValidationMessage.text('Formato de e-mail inválido');
+                    camposOk = false;
+                }
+                if (!camposOk) {
+                    return;
+                }
+                
+                btnVerificar.prop('disabled', true).text('Verificando...');
+
+                $.ajax({
+                    url: "{% url 'clientes:verificar_documento_ajax' %}",
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify({ 
+                        'documento': documento, 
+                        'email': email 
+                    }),
+                    headers: { 'X-CSRFToken': csrfToken },
+                    
+                    success: function(response) {
+                        
+                        if (response.status === 'exists') {
+                            showResultado('aviso', response.message);
+                            btnVerificar.text('Verificar'); 
+                        
+                        } else if (response.status === 'not_found' && response.doc_type === 'cpf') {
+                            showResultado('sucesso', 'Documento e e-mail válidos. Por favor, complete seu cadastro abaixo.');
+                            $('#bloco_verificacao').slideUp();
+                            
+                            // [AJUSTADO] Preenche CPF e E-MAIL, trava e remove do TAB
+                            var campoCpfLegado = $('#{{ form.cpf.id_for_label }}');
+                            campoCpfLegado.val(documento)
+                                .prop('readonly', true)
+                                .attr('tabindex', -1); // <-- AQUI: Remove do TAB
+                            campoCpfLegado.mask('000.000.000-00');
+                            
+                            var campoEmailLegado = $('#{{ form.email.id_for_label }}');
+                            campoEmailLegado.val(email)
+                                .prop('readonly', true)
+                                .attr('tabindex', -1); // <-- AQUI: Remove do TAB
+                            
+                            // Limpa o campo de confirmação e garante que não está readonly
+                            $('#{{ form.email_confirm.id_for_label }}').val('').prop('readonly', false);
+                            
+                            $('#form_cadastro_completo').slideDown();
+                        
+                        } else if (response.status === 'not_found_pj') {
+                            showResultado('sucesso', 'CNPJ e e-mail válidos. O cadastro para Pessoa Jurídica será liberado em breve!');
+                            btnVerificar.text('Verificar').prop('disabled', false);
+                        
+                        } else {
+                            showResultado('erro', response.message || 'Erro desconhecido.');
+                            btnVerificar.text('Verificar').prop('disabled', false);
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        let errorMsg = 'Ocorreu um erro ao verificar os dados.';
+                        if (xhr.responseJSON && xhr.responseJSON.message) {
+                            errorMsg = xhr.responseJSON.message;
+                        }
+                        showResultado('erro', errorMsg);
+                        btnVerificar.text('Verificar').prop('disabled', false);
+                    }
+                });
+            });
+        });
+    </script>
+
+</body>
+</html>

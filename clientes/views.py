@@ -12,7 +12,11 @@ from django.urls import reverse, reverse_lazy
 from django.db import transaction
 from django.utils.crypto import get_random_string 
 from django.contrib import messages
-from django.http import HttpResponseRedirect 
+from django.http import HttpResponseRedirect, JsonResponse
+import json
+# Imports para validação de e-mail
+from django.core.validators import validate_email
+from django.core.exceptions import ValidationError
 
 # Imports das Views Padrão
 from django.contrib.auth.views import (
@@ -26,11 +30,27 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic.edit import UpdateView
 
 # Imports dos Nossos Modelos e Forms
-from .models import Cliente
-from .forms import FichaCadastralClienteForm, ClienteManutencaoForm 
+from .models import Cliente 
+from .forms import (
+    FichaCadastralClienteForm, 
+    ClienteManutencaoForm, 
+    validate_cpf_algorithm,
+    validate_cnpj_algorithm
+)
+
+# --- VIEW DO NOVO CADASTRO DINÂMICO (PF/PJ) ---
+# ... (Esta view permanece idêntica, sem alterações) ...
+def cadastro_dinamico_view(request):
+    form = FichaCadastralClienteForm()
+    context = {
+        'page_title': 'Novo Cadastro - 1/3',
+        'form': form, 
+    }
+    return render(request, 'clientes/cadastro_dinamico.html', context)
+
 
 # --- VIEW DE CADASTRO PÚBLICO (AQUI ESTÁ A CORREÇÃO) ---
-
+# ... (Esta view permanece idêntica, sem alterações) ...
 @transaction.atomic 
 def cadastro_publico_pf(request):
     if request.method == 'POST':
@@ -43,55 +63,40 @@ def cadastro_publico_pf(request):
             username = email 
             
             try:
-                # 1. Cria a senha temporária
                 senha_temporaria = get_random_string(length=12)
-
-                # 2. Cria o User COM a senha
                 user = User.objects.create_user(username=username, email=email, password=senha_temporaria)
                 user.first_name = nome.split(' ')[0] 
-                user.is_active = False # INATIVO (Correto)
-                
-                # 3. Salva
+                user.is_active = False 
                 user.save()
-                
             except Exception as e:
                 from django.db.utils import IntegrityError
                 if isinstance(e, IntegrityError):
                     msg = "O e-mail ou CPF informado já possui cadastro."
                 else:
                     msg = f"Erro desconhecido ao criar conta. ({e})"
-                
                 form.add_error(None, msg)
                 return render(request, 'clientes/cadastro_publico_pf.html', {'form': form})
 
-            # Se o try/except for bem-sucedido, o código continua aqui:
             novo_cliente.user = user
             novo_cliente.save() 
 
-            #Geracao do Token e Envio do E-mail:
             current_site = get_current_site(request)
             mail_subject = 'Ative sua conta e crie sua senha - Lider Drive'
-            
-            # --- CORREÇÃO APLICADA AQUI ---
             context = {
                 'user': user,
                 'domain': current_site.domain,
-                'uid': urlsafe_base64_encode(force_bytes(user.pk)), # MUDADO DE 'uidb64' PARA 'uid'
+                'uid': urlsafe_base64_encode(force_bytes(user.pk)), 
                 'token': default_token_generator.make_token(user),
                 'protocol': 'http',
-                'site_name': current_site.name, # Mantido, embora o template não use
+                'site_name': current_site.name,
             }
-            # --- FIM DA CORREÇÃO ---
-            
             message = render_to_string('registration/password_reset_email.html', context)
             to_email = form.cleaned_data['email']
             email_message = EmailMessage(
                 mail_subject, message, to=[to_email]
             )
-            email_message.send() # Envia para o console
-
+            email_message.send() 
             return redirect('clientes:cadastro_sucesso')
-    
     else:
         form = FichaCadastralClienteForm()
 
@@ -107,11 +112,11 @@ def cadastro_sucesso(request):
 
 
 # --- VIEW SEGURA PARA EDIÇÃO DE DADOS (ÁREA EXCLUSIVA) ---
+# ... (Esta view permanece idêntica, sem alterações) ...
 class ClienteManutencaoView(LoginRequiredMixin, UpdateView):
     model = Cliente
-    form_class = ClienteManutencaoForm # Usa o formulário completo
-    template_name = 'clientes/area_cliente.html' # O template que você já criou
-    
+    form_class = ClienteManutencaoForm
+    template_name = 'clientes/area_cliente.html'
     success_url = reverse_lazy('clientes:area_cliente') 
 
     def get_object(self, queryset=None):
@@ -123,12 +128,106 @@ class ClienteManutencaoView(LoginRequiredMixin, UpdateView):
         return context
 
 # --- VIEW DA ÁREA DO CLIENTE (Placeholder) ---
+# ... (Esta view permanece idêntica, sem alterações) ...
 @login_required 
 def area_cliente_logado(request):
     try:
-        # Tenta carregar o formulário de manutenção
         return ClienteManutencaoView.as_view()(request)
     except Cliente.DoesNotExist:
-        # Se o cliente foi criado mas o usuário ainda não está ligado a ele
-        # (Isso não deve acontecer no fluxo normal)
         return render(request, 'clientes/area_cliente_erro.html')
+
+# --- FUNÇÃO AUXILIAR PARA MASCARAR E-MAIL ---
+def mask_email(email):
+    try:
+        local, domain = email.split('@')
+        local_masked = local[0] + '***' + local[-1] if len(local) > 2 else local[0] + '***'
+        domain_parts = domain.split('.')
+        domain_name = domain_parts[0]
+        domain_ext = ".".join(domain_parts[1:])
+        domain_masked = domain_name[0] + '***' + domain_name[-1] if len(domain_name) > 2 else domain_name[0] + '***'
+        return f"{local_masked}@{domain_masked}.{domain_ext}"
+    except Exception:
+        return "e-mail cadastrado"
+
+# --- [NOVO] FUNÇÃO AUXILIAR PARA MASCARAR CPF ---
+def mask_cpf(cpf):
+    try:
+        cpf_limpo = "".join(filter(str.isdigit, str(cpf)))
+        if len(cpf_limpo) == 11:
+            return f"***.{cpf_limpo[3:6]}.{cpf_limpo[6:9]}-**"
+        else:
+            return "documento cadastrado"
+    except Exception:
+        return "documento cadastrado"
+
+
+# --- [REFINADO] VIEW AJAX COM LÓGICA DE PRIORIDADE CORRETA ---
+def verificar_documento_ajax(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            documento = data.get('documento', '')
+            email = data.get('email', '').lower().strip()
+            
+            documento_limpo = "".join(filter(str.isdigit, documento))
+            doc_type = None
+
+            # --- ETAPA 1: Validar o Documento PRIMEIRO (Sua Lógica) ---
+            if len(documento_limpo) == 11:
+                doc_type = 'cpf'
+                if not validate_cpf_algorithm(documento_limpo):
+                    return JsonResponse({'status': 'error', 'message': 'CPF inválido.'}, status=400)
+            
+            elif len(documento_limpo) == 14:
+                doc_type = 'cnpj'
+                if not validate_cnpj_algorithm(documento_limpo):
+                    return JsonResponse({'status': 'error', 'message': 'CNPJ inválido.'}, status=400)
+            
+            else:
+                return JsonResponse({'status': 'error', 'message': 'Documento inválido.'}, status=400)
+
+            # --- ETAPA 2: Validar o Formato do E-mail ---
+            try:
+                validate_email(email)
+            except ValidationError:
+                return JsonResponse({'status': 'error', 'message': 'Formato de e-mail inválido.'}, status=400)
+
+            # --- ETAPA 3: Checar Duplicidade (Banco de Dados) ---
+            
+            # [MODIFICADO] 3a. Checar E-mail (e buscar CPF associado)
+            user_qs = User.objects.filter(email__iexact=email)
+            if user_qs.exists():
+                user_encontrado = user_qs.first()
+                reset_url = reverse('password_reset')
+                cpf_associado_str = "a outra conta" # Fallback
+                
+                try:
+                    # Tenta acessar o 'cliente' (related_name do User para Cliente)
+                    if hasattr(user_encontrado, 'cliente'):
+                        cpf_associado_str = mask_cpf(user_encontrado.cliente.cpf)
+                except Exception:
+                    pass # Se falhar (ex: admin), usa o fallback
+
+                msg = f'Este e-mail já está cadastrado (associado ao {cpf_associado_str}). Tente <a href="{reset_url}">recuperar sua senha</a>.'
+                return JsonResponse({'status': 'exists', 'message': msg})
+            
+            # 3b. Checar Documento (só se for CPF, por enquanto)
+            if doc_type == 'cpf':
+                cliente_qs = Cliente.objects.filter(cpf=documento_limpo)
+                if cliente_qs.exists():
+                    cliente = cliente_qs.first()
+                    email_mascarado = mask_email(cliente.user.email)
+                    reset_url = reverse('password_reset') 
+                    msg = f'Este CPF já possui cadastro (associado ao e-mail: {email_mascarado}).<br>Se você é o titular, <a href="{reset_url}">recupere sua senha</a>.'
+                    return JsonResponse({'status': 'exists', 'message': msg})
+            
+            # --- ETAPA 4: Tudo Válido e Novo! ---
+            if doc_type == 'cpf':
+                return JsonResponse({'status': 'not_found', 'doc_type': doc_type})
+            elif doc_type == 'cnpj':
+                return JsonResponse({'status': 'not_found_pj'})
+
+        except Exception as e:
+            return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
+
+    return JsonResponse({'status': 'error', 'message': 'Método não permitido.'}, status=405)
