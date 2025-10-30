@@ -1,32 +1,60 @@
-<!--templates/index.html-->
-
 {% load static %}
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lider Drive - Locadora de Veículos</title>
+    
+    <title>{{ site_config.nome_empresa|default:"Lider Drive" }} - Locadora de Veículos</title>
+    
     <style>
-        /* --- ESTILOS GERAIS --- */
+        /* --- ESTILOS GERAIS (DEFAULT / MOBILE FIRST) --- */
         body { 
             font-family: sans-serif; text-align: center; padding: 0; 
             background-color: #f4f4f4; margin: 0;
             display: flex; flex-direction: column; min-height: 100vh;
         }
-        .main-content { flex-grow: 1; }
-        .container { 
-            max-width: 800px; margin: 40px auto; background-color: #fff; 
-            padding: 40px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); 
+        
+        .main-content { 
+            flex-grow: 1; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            padding: 20px 0; 
         }
-        .logo { margin-bottom: 30px; }
-        .logo img { max-width: 250px; height: auto; }
-        h1 { color: #333; margin-bottom: 10px; }
-        p { color: #666; line-height: 1.6; margin-bottom: 30px; }
+        
+        .container { 
+            max-width: 950px; 
+            margin: 0 auto; 
+            background-color: #fff; 
+            padding: 20px; 
+            border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); 
+        }
+        
+        .logo { margin-bottom: 30px; } 
+        
+        /* [LOGO PRINCIPAL] */
+        .logo img { 
+            max-width: 100%; 
+            height: auto; 
+        } 
+        /* [LOGO FOOTER DA EMPRESA] */
+        .footer-logo img {
+            max-width: 120px; 
+            height: auto;
+            max-height: 60px; 
+        }
+
+        h1 { color: #333; margin-bottom: 25px; }
+        p { color: #666; line-height: 1.6; margin-bottom: 40px; }
+        
         .button-box { margin-top: 20px; }
         .button-box a {
-            display: inline-block; padding: 15px 30px; margin: 10px;
-            font-size: 1.1em; text-decoration: none; border-radius: 5px;
+            display: block; 
+            padding: 18px 40px; 
+            margin: 10px 0; 
+            font-size: 1.1em; 
+            text-decoration: none; border-radius: 5px;
             font-weight: bold; transition: background-color 0.3s ease;
         }
         .acesso-restrito { background-color: #0056b3; color: white; }
@@ -34,69 +62,99 @@
         .ficha-cadastro { background-color: #38a169; color: white; }
         .ficha-cadastro:hover { background-color: #2f855a; }
 
-        /* --- ESTILOS ATUALIZADOS DO FOOTER --- */
+        /* --- FOOTER MOBILE (PADRÃO - Empilhado e Compacto) --- */
         .footer {
             background-color: #0d2c4f; color: #ffffff;
-            padding: 20px 0; width: 100%; margin-top: auto;
+            padding: 10px 0; 
+            width: 100%; margin-top: auto;
         }
         .footer-content {
-            display: flex; justify-content: space-between; align-items: center;
-            max-width: 1200px; margin: 0 auto; padding: 0 20px;
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            text-align: center;
+            max-width: 1200px; margin: 0 auto; padding: 0 15px; 
             flex-wrap: wrap;
         }
-        /* Logo Lider Drive (Maior) */
-        .footer-logo img {
-            max-width: 150px; height: auto;
-        }
         
-        /* --- MUDANÇAS AQUI (Redes Sociais) --- */
-        .footer-social {
-            text-align: center; /* Centraliza o texto e os ícones */
-            margin: 10px 20px;
+        .footer-social { margin: 5px 0; } 
+        .footer-social p { margin: 0 0 5px 0; }
+        .footer-social .social-icons a img { 
+            height: 28px; 
+            width: 28px;
+            margin: 0 4px; 
         }
-        .footer-social p { /* Texto "SIGA NOSSAS..." */
-            margin: 0 0 10px 0; /* Adiciona espaço ABAIXO do texto */
-            font-size: 0.9em;
-            font-weight: bold;
-            color: #fff;
-            white-space: nowrap;
-        }
-        .footer-social .social-icons {
-            /* Div que segura os ícones */
-            display: block; /* Garante que fique abaixo */
-        }
-        .footer-social .social-icons a img { /* Ícones (Maiores) */
-            height: 32px; /* Aumenta o tamanho (era 24px) */
-            width: 32px;
-            margin: 0 5px; /* Espaço entre os ícones */
-            vertical-align: middle;
-        }
-        /* --- FIM DAS MUDANÇAS (Redes Sociais) --- */
 
-        /* Links de Texto (Sem mudança) */
         .footer-links {
-            display: flex; flex-direction: column;
-            align-items: flex-start; flex-grow: 1;
-            margin: 10px 20px;
+            align-items: center; 
+            margin: 5px 0; 
         }
-        .footer-links .links-row-1,
-        .footer-links .links-row-2 { display: flex; flex-wrap: wrap; }
-        .footer-links a {
-            color: #fff; text-decoration: none; font-size: 0.8em;
-            margin: 3px 10px; font-weight: bold; white-space: nowrap;
+        .footer-links a { 
+            margin: 2px 4px; 
+            font-size: 0.75em; 
         }
-        .footer-links a:hover { text-decoration: underline; }
-        .footer-links .links-row-2 { margin-top: 5px; }
-        /* Separador (Sem mudança) */
-        .footer-separator {
-            border-left: 1px solid #ffffff;
-            height: 40px; margin: 0 20px;
+        .footer-links .links-row-2 { margin-top: 3px; } 
+
+        .footer-separator { display: none; } 
+        
+        /* [AJUSTADO] LOGO GP (Padrão/Mobile) */
+        .footer-group-logo img {
+            height: 50px; /* Aumentado para 50px no mobile */
+            width: auto;
+            margin: 5px 0; 
         }
 
-        /* --- MUDANÇA AQUI (Logo Grupo Lider) --- */
-        .footer-group-logo img {
-            height: 50px; /* Aumenta o tamanho (era 40px) */
-            width: auto;
+        /* --- MEDIA QUERY: TABLET E DESKTOP (A partir de 600px) --- */
+        @media (min-width: 600px) {
+            .container { 
+                max-width: 950px; 
+                padding: 40px; 
+            }
+            
+            .logo img { 
+                max-width: 400px; 
+            } 
+
+            .button-box a {
+                display: inline-block;
+                margin: 10px;
+                padding: 18px 40px; 
+            }
+
+            .footer-content {
+                flex-direction: row; 
+                justify-content: space-between;
+                align-items: center; 
+                padding: 0 20px; 
+            }
+            
+            /* Limpa o flex-grow para que o bloco de links não empurre o GP Logo */
+            .footer-links {
+                align-items: flex-start;
+                flex-grow: 0; /* [CORREÇÃO CHAVE] Impede que o bloco de links se estique demais */
+            }
+
+            /* Garante que os blocos tenham espaçamento e fiquem na mesma linha */
+            .footer-logo, 
+            .footer-social, 
+            .footer-links, 
+            .footer-group-logo {
+                margin: 0; 
+                padding: 0 15px; 
+            }
+
+            /* [AJUSTADO] LOGO GP (Desktop) */
+            .footer-group-logo img {
+                height: 50px; /* Mantém a altura de 50px no desktop */
+            }
+
+            .footer-social p { margin: 0 0 10px 0; } 
+
+            .footer-separator {
+                display: block; 
+                height: 30px; 
+                margin: 0 15px; 
+            }
         }
     </style>
 </head>
@@ -105,14 +163,20 @@
     <div class="main-content">
         <div class="container">
             <div class="logo">
-                <img src="{% static 'logo.png' %}" alt="Logotipo Lider Drive">
+                {% if site_config and site_config.logo %}
+                    <img src="{{ site_config.logo.url }}" alt="Logotipo {{ site_config.nome_empresa|default:"Lider Drive" }}">
+                {% else %}
+                    <img src="{% static 'logo.png' %}" alt="Logotipo Lider Drive">
+                {% endif %}
             </div>
-            <h1>Bem-vindo à Lider Drive</h1>
-            <p>Sua plataforma completa para gestão de frotas e cadastro.</p>
+            
+            <h1>Bem-vindo à {{ site_config.nome_empresa|default:"Lider Drive" }}</h1>
+            
+            <p></p>
 
             <div class="button-box">
                 <a href="{% url 'login' %}" class="acesso-restrito">Acesso ao Sistema</a>
-                <a href="{% url 'clientes:cadastro_publico_pf' %}" class="ficha-cadastro">Ficha Cadastral (Cliente)</a>
+                <a href="{% url 'clientes:cadastro_dinamico' %}" class="ficha-cadastro">Ficha Cadastral (Cliente)</a>
             </div>
         </div>
     </div>
@@ -121,8 +185,12 @@
         <div class="footer-content">
             
             <div class="footer-logo">
-                <a href="https://www.meuliderdrive.com.br" target="_blank">
-                    <img src="{% static 'logo.png' %}" alt="Lider Drive Logo">
+                <a href="{% if site_config and site_config.logo %}{{ site_config.logo.url }}{% else %}#{% endif %}" target="_blank">
+                    {% if site_config and site_config.logo %}
+                        <img src="{{ site_config.logo.url }}" alt="Logo {{ site_config.nome_empresa|default:"Lider Drive" }}">
+                    {% else %}
+                        <img src="{% static 'logo.png' %}" alt="Lider Drive Logo">
+                    {% endif %}
                 </a>
             </div>
 

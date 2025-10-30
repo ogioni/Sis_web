@@ -30,7 +30,13 @@
 <body>
     <div class="container">
         <div class="branding">
-            <img src="{% static 'logo.png' %}" alt="Logotipo Lider Drive">
+            {% if site_config and site_config.logo %}
+    <img src="{{ site_config.logo.url }}" 
+         alt="Logotipo {{ site_config.nome_empresa|default:"Lider Drive" }}">
+{% else %}
+    <img src="{% static 'logo.png' %}" 
+         alt="Logotipo Lider Drive">
+{% endif %}
         </div>
         
         {# A view vai nos mandar o 'user' logado #}

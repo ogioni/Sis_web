@@ -4,7 +4,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ page_title|default:"Novo Cadastro" }} - Lider Drive</title>
+    
+    <title>{{ page_title|default:"Novo Cadastro" }} - {{ site_config.nome_empresa|default:"Lider Drive" }}</title>
+    
     <style>
         body { font-family: sans-serif; background-color: #f4f4f4; margin: 0; padding: 20px;}
         .container { max-width: 900px; margin: 20px auto; background-color: #fff; padding: 2.5rem; border-radius: 8px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
@@ -107,8 +109,13 @@
             {% csrf_token %}
             
             <div class="branding">
-                <img src="{% static 'logo.png' %}" alt="Logotipo Lider Drive">
-                <p class="auth-title">{{ page_title|default:"Novo Cadastro" }}</p>
+                {% if site_config and site_config.logo %}
+                    <img src="{{ site_config.logo.url }}" alt="Logotipo {{ site_config.nome_empresa|default:"Lider Drive" }}" style="max-width: 150px;">
+                {% else %}
+                    <img src="{% static 'logo.png' %}" alt="Logotipo Lider Drive">
+                {% endif %}
+                
+                <p class="auth-title">NOVO CADASTRO</p>
             </div>
 
             <fieldset id="bloco_verificacao">
@@ -146,7 +153,6 @@
                         {% endfor %}
                     {% endif %}
 
-                    {# ... (Todo o miolo do formulário PF) ... #}
                     {# LINHA 1: NOME COMPLETO (FULL WIDTH) #}
                     <div class="form-grid">
                         <div class="form-row full-width">
@@ -183,7 +189,6 @@
                             </div>
                             {{ form.rg }}
                         </div>
-                        {# ... (Restante dos campos PF) ... #}
                         {# LINHA 3 ... #}
                         <div class="form-row">
                             <div class="label-container">
@@ -273,7 +278,7 @@
                     <button type="submit" id="submit_button">Criar Conta e Validar E-mail</button>
                 </div>
             </div> </form> <div class="back-link">
-            <a href="javascript:location.reload();">Voltar</a>
+            <a href="{% url 'home' %}">Voltar para o Início</a>
         </div>
     </div>
     
@@ -320,21 +325,14 @@
     <script>
         $(document).ready(function() {
             
-            // --- [MODIFICADO] LÓGICA DE 'show_form_on_load' ---
-            // 1. Passa a variável do Django para o JS como uma string
-            //    (Note as aspas em 'false' para o linter ver uma string)
+            // --- LÓGICA DE 'show_form_on_load' ---
             var showFlagString = "{{ show_form_on_load|default:'false'|lower }}";
-
-            // 2. Converte a string "true" ou "false" para um booleano JS
             var showFormOnLoad = (showFlagString === 'true');
-            // --- FIM DA MODIFICAÇÃO (A linha vermelha deve sumir) ---
 
-            // 3. Verifica se o formulário deve ser exibido
             if (showFormOnLoad) {
                 $('#bloco_verificacao').hide();
                 $('#form_cadastro_completo').show();
 
-                // 4. Reaplica as travas e máscaras
                 var campoCpfLegado = $('#{{ form.cpf.id_for_label }}');
                 if (campoCpfLegado.val()) { 
                     campoCpfLegado.prop('readonly', true)
@@ -348,7 +346,7 @@
                                     .attr('tabindex', -1);
                 }
             }
-            // --- FIM DO BLOCO ---
+            // --- FIM DO BLOCO INICIAL ---
             
             // --- 1. REFERÊNCIAS E MÁSCARA ---
             var documentoInput = $('#documento_input');

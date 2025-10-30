@@ -27,6 +27,7 @@ INSTALLED_APPS = [
     'users', 
     'anymail', 
     'clientes.apps.ClientesConfig',
+    'core.apps.CoreConfig', # [ADICIONADO] Nosso novo app de configurações
     'js_asset',
     'widget_tweaks',
 ]
@@ -57,6 +58,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'core.context_processors.site_config_processor', # [ADICIONADO] Injeta o logo e nome
             ],
         },
     },
@@ -89,6 +91,13 @@ USE_TZ = True
 # Static files
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static'),] 
+
+# --- [ADICIONADO] Configuração de Mídia (Uploads) ---
+# URL pública para os arquivos de upload (ex: /media/logos/meulogo.png)
+MEDIA_URL = '/media/'
+# Caminho no sistema de arquivos onde o Django salvará os uploads
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+# --- FIM DA ADIÇÃO ---
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
