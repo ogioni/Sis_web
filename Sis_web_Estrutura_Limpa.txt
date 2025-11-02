@@ -28,6 +28,7 @@ C:.
 |           0002_cliente_rg_orgao_expeditor_cliente_rg_uf.py
 |           0003_remove_cliente_condutor_cnh_and_more.py
 |           0004_alter_cliente_options_cliente_condutor_cnh_and_more.py
+|           0005_cliente_complemento_comercial_and_more.py
 |           __init__.py
 |           
 +---config
