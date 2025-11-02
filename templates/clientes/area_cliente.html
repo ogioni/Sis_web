@@ -1,57 +1,30 @@
-{% load static %}
-<!DOCTYPE html>
-<html lang="pt-br">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Minha Conta - Lider Drive</title>
-    <style>
-        body { font-family: sans-serif; text-align: center; padding: 50px; background-color: #f4f4f4; margin: 0;}
-        .container { max-width: 800px; margin: 40px auto; background-color: #fff; padding: 40px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-        .branding { display: flex; flex-direction: column; align-items: center; margin-bottom: 2rem; }
-        .branding img { width: 150px; margin-bottom: 15px; }
-        h1 { color: #0056b3; }
-        p { color: #333; font-size: 1.1em; }
-        
-        /* Estilo para o botão Sair parecer um link */
-        .logout-link { margin-top: 30px; }
-        .link-button {
-            background: none;
-            border: none;
-            color: #cc0000; /* Vermelho para 'Sair' */
-            text-decoration: underline;
-            cursor: pointer;
-            font-size: 1em;
-            font-family: sans-serif;
-            font-weight: bold;
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <div class="branding">
-            {% if site_config and site_config.logo %}
-    <img src="{{ site_config.logo.url }}" 
-         alt="Logotipo {{ site_config.nome_empresa|default:"Lider Drive" }}">
-{% else %}
-    <img src="{% static 'logo.png' %}" 
-         alt="Logotipo Lider Drive">
-{% endif %}
-        </div>
-        
-        {# A view vai nos mandar o 'user' logado #}
-        <h1>Bem-vindo à sua Área Exclusiva, {{ user.first_name|default:user.username }}!</h1>
-        
-        <p>Você logou com sucesso. Este é o seu painel de cliente.</p>
-        <p>Em breve, você poderá editar sua Ficha Cadastral (Fase 2 e 3) aqui.</p>
+{% extends "clientes/base_cliente.html" %}
 
-        {# Formulário de Logout (usa POST) #}
-        <div class="logout-link">
-             <form action="{% url 'logout' %}" method="post" style="display: inline;">
-               {% csrf_token %}
-               <button type="submit" class="link-button">Sair do Sistema</button>
-             </form>
-        </div>
-    </div>
-</body>
-</html>
+{% block title %}Meu Painel{% endblock title %}
+
+{% block content_title %}Meu Painel de Cliente{% endblock content_title %}
+
+{% block content %}
+<p>
+    Olá, {{ user.first_name|default:user.username }}. Este é o seu painel de controle.
+</p>
+
+{# NOVO: Exibição dos dados principais #}
+<div class="data-block">
+    {# O ID interno do cliente é o PK (Primary Key) da tabela Cliente #}
+    <p><strong>Código Interno (ID):</strong> {{ user.cliente.pk }}</p> 
+    <p><strong>E-mail:</strong> {{ user.email }}</p>
+    
+    {% if user.cliente.cpf %}
+        <p><strong>Documento:</strong> {{ user.cliente.cpf }} (Pessoa Física)</p>
+    {% else %}
+        <p><strong>Tipo de Conta:</strong> Informações de Pessoa Jurídica pendentes.</p>
+    {% endif %}
+    
+    <p><strong>Status de Acesso:</strong> {% if user.is_active %}Ativo{% else %}Inativo (requer ativação){% endif %}</p>
+</div>
+
+<p style="margin-top: 30px;">
+    Use a barra lateral para acessar sua ficha cadastral e demais documentos.
+</p>
+{% endblock content %}

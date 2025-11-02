@@ -1,0 +1,121 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}{% endblock title %} - {{ site_config.nome_empresa|default:"Lider Drive" }}</title>
+    <style>
+        body { margin: 0; font-family: sans-serif; background-color: #f4f4f4; min-height: 100vh; }
+        
+        /* Layout Principal do Dashboard (GRID) */
+        .dashboard-layout {
+            display: grid;
+            grid-template-columns: 220px 1fr; /* 220px para Sidebar, 1fr para Conteúdo */
+            min-height: 100vh;
+        }
+
+        /* --- Sidebar (Menu Lateral) --- */
+        .sidebar {
+            background-color: #0d2c4f; /* Azul escuro */
+            color: white;
+            padding: 20px;
+            box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .sidebar-logo { margin-bottom: 20px; }
+        /* [AJUSTADO] LOGO MAIOR */
+        .sidebar-logo img { 
+            max-width: 180px; 
+            max-height: 110px; 
+            height: auto; 
+        }
+        .sidebar-nav a {
+            display: block;
+            color: #fff;
+            text-decoration: none;
+            padding: 10px 15px;
+            margin-bottom: 5px;
+            width: 100%;
+            text-align: left;
+            border-radius: 4px;
+            transition: background-color 0.2s;
+        }
+        .sidebar-nav a:hover {
+            background-color: #1a4d8c; /* Azul ligeiramente mais claro no hover */
+        }
+        .user-greeting { margin-top: auto; font-size: 0.9em; padding-top: 15px; border-top: 1px solid #1a4d8c; width: 100%; text-align: center;}
+        
+        /* --- Área de Conteúdo --- */
+        .content-area {
+            padding: 30px;
+            background-color: #ffffff; /* Fundo do conteúdo principal */
+        }
+        .content-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 15px;
+        }
+        .content-header h2 {
+            color: #333;
+            margin: 0;
+        }
+        
+        /* Estilo para o botão Sair */
+        .logout-link { margin-left: 20px; }
+        .link-button {
+            background: none; border: none; color: #cc0000; text-decoration: underline;
+            cursor: pointer; 
+            font-size: 2em; /* [AJUSTADO] BOTÃO SAIR MAIOR */
+            font-family: sans-serif; font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-layout">
+        <div class="sidebar">
+            <div class="sidebar-logo">
+                {% if site_config and site_config.logo %}
+                    <img src="{{ site_config.logo.url }}" alt="Logotipo {{ site_config.nome_empresa|default:"Lider Drive" }}">
+                {% else %}
+                    <img src="{% static 'logo.png' %}" alt="Logotipo Lider Drive">
+                {% endif %}
+            </div>
+
+            <nav class="sidebar-nav">
+                <a href="{% url 'clientes:area_cliente' %}">Dashboard</a>
+                <a href="#">Minha Ficha Cadastral</a>
+                <a href="#">Meus Contratos</a>
+                <a href="#">Histórico Financeiro</a>
+            </nav>
+
+            <div class="user-greeting">
+                Logado como: <strong>{{ user.first_name|default:user.username }}</strong>
+                <div class="logout-link">
+                    <form action="{% url 'logout' %}" method="post" style="display: inline;">
+                        {% csrf_token %}
+                        <button type="submit" class="link-button">Sair</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="content-area">
+            <div class="content-header">
+                <h2>{% block content_title %}Dashboard{% endblock content_title %}</h2>
+                
+            </div>
+            
+            {% block content %}
+            {# Conteúdo específico da página vai aqui #}
+            {% endblock content %}
+
+        </div>
+    </div>
+</body>
+</html>
