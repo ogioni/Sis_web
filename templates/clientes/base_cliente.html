@@ -1,3 +1,5 @@
+<!-- templates/clientes/base_cliente.html -->
+
 {% load static %}
 <!DOCTYPE html>
 <html lang="pt-br">
@@ -150,7 +152,7 @@
 
             <nav class="sidebar-nav-desktop">
                 <a href="{% url 'clientes:area_cliente' %}">Dashboard</a>
-                <a href="#">Minha Ficha Cadastral</a>
+                <a href="{% url 'clientes:ficha_cadastral' %}">Minha Ficha Cadastral</a>
                 <a href="#">Meus Contratos</a>
                 <a href="#">Histórico Financeiro</a>
             </nav>
@@ -167,7 +169,7 @@
         </div>
         <nav class="sidebar-nav-mobile" id="sidebarNavMobile">
             <a href="{% url 'clientes:area_cliente' %}">Dashboard</a>
-            <a href="#">Minha Ficha Cadastral</a>
+            <a href="{% url 'clientes:ficha_cadastral' %}">Minha Ficha Cadastral</a>
             <a href="#">Meus Contratos</a>
             <a href="#">Histórico Financeiro</a>
             

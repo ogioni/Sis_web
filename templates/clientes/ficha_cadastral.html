@@ -1,0 +1,236 @@
+{% extends "clientes/base_cliente.html" %}
+{% load widget_tweaks %}
+{% load static %}
+
+{% block title %}Minha Ficha Cadastral{% endblock title %}
+{% block content_title %}Minha Ficha Cadastral (Edição){% endblock content_title %}
+
+{% block content %}
+
+    {% if messages %}
+        <ul class="messagelist">
+            {% for message in messages %}
+                <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+
+    <form method="post" enctype="multipart/form-data" class="ficha-form">
+        {% csrf_token %}
+
+        {% if form.non_field_errors %}
+            <div class="errornote">
+                {% for error in form.non_field_errors %}
+                    {{ error }}
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        <div class="form-sections">
+
+            {# ========================================= #}
+            {# 1. DADOS PESSOAIS E DOCUMENTOS #}
+            {# ========================================= #}
+            <fieldset>
+                <legend>Dados Pessoais (Fase 1)</legend>
+                <div class="form-grid-3-col">
+                    <div class="form-row full-width">
+                        <label for="{{ form.nome_completo.id_for_label }}">
+                            {{ form.nome_completo.label }}:
+                            {% if form.nome_completo.errors %}{{ form.nome_completo.errors|striptags }}{% endif %}
+                        </label>
+                        {% render_field form.nome_completo class+="form-control uppercase-input" %}
+                    </div>
+
+                    <div class="form-row">
+                        <label for="{{ form.data_nascimento.id_for_label }}">{{ form.data_nascimento.label }}:</label>
+                        {% render_field form.data_nascimento class+="form-control date-mask" %}
+                    </div>
+                    <div class="form-row">
+                        <label for="{{ form.cpf.id_for_label }}">
+                            {{ form.cpf.label }}:
+                            {% if form.cpf.errors %}{{ form.cpf.errors|striptags }}{% endif %}
+                        </label>
+                        {% render_field form.cpf class+="form-control cpf-mask" readonly="readonly" %}
+                    </div>
+                    <div class="form-row">
+                        <label for="{{ form.rg.id_for_label }}">{{ form.rg.label }}:</label>
+                        {% render_field form.rg class+="form-control uppercase-input" %}
+                    </div>
+
+                    <div class="form-row">
+                        <label for="{{ form.rg_orgao_expeditor.id_for_label }}">{{ form.rg_orgao_expeditor.label }}:</label>
+                        {% render_field form.rg_orgao_expeditor class+="form-control uppercase-input" %}
+                    </div>
+                    <div class="form-row">
+                        <label for="{{ form.rg_uf.id_for_label }}">{{ form.rg_uf.label }}:</label>
+                        {% render_field form.rg_uf class+="form-control" %}
+                    </div>
+                    <div class="form-row">
+                        <label for="{{ form.estado_civil.id_for_label }}">{{ form.estado_civil.label }}:</label>
+                        {% render_field form.estado_civil class+="form-control" %}
+                    </div>
+            </fieldset>
+
+            {# ======================================= #}
+            {# 3. FILIAÇÃO #}
+            {# ========================================= #}
+
+           <fieldset>
+                <legend>Filiação</legend>
+                <div class="form-grid-2-col">
+                    <div class="form-row">
+                        <label for="{{ form.nome_mae.id_for_label }}">{{ form.nome_mae.label }}:</label>
+                        {% render_field form.nome_mae class+="form-control uppercase-input" %}
+                    </div>
+                <div class="form-row">
+                        <label for="{{ form.nome_pai.id_for_label }}">{{ form.nome_pai.label }}:</label>
+                        {% render_field form.nome_pai class+="form-control uppercase-input" %}
+                    </div>
+                </div>
+            </fieldset>
+
+
+            {# ========================================= #}
+            {# 3. CONTATO #}
+            {# ========================================= #}
+            <fieldset>
+                <legend>Contato</legend>
+                <div class="form-grid-3-col">
+                    <div class="form-row">
+                        <label for="{{ form.email.id_for_label }}">{{ form.email.label }}:</label>
+                        {% render_field form.email class+="form-control" readonly="readonly" %}
+                    </div>
+                    <div class="form-row">
+                        <label for="{{ form.celular.id_for_label }}">{{ form.celular.label }}:</label>
+                        {% render_field form.celular class+="form-control phone-mask" %}
+                    </div>
+                    <div class="form-row">
+                        <label for="{{ form.telefone.id_for_label }}">{{ form.telefone.label }}:</label>
+                        {% render_field form.telefone class+="form-control phone-mask" %}
+                    </div>
+                </div>
+            </fieldset>
+
+            {# ========================================= #}
+            {# 4. ENDEREÇO (CEP / Logradouro / Número / Complemento) #}
+            {# ========================================= #}
+            <fieldset>
+                <legend>Endereço Residencial</legend>
+                <div class="form-grid-endereco">
+                    <div class="form-row">
+                        <label for="{{ form.cep_residencial.id_for_label }}">{{ form.cep_residencial.label }}:</label>
+                        {% render_field form.cep_residencial class+="form-control cep-mask" %}
+                    </div>
+                    <div class="form-row">
+                        <label for="{{ form.endereco_residencial.id_for_label }}">{{ form.endereco_residencial.label }}:</label>
+                        {% render_field form.endereco_residencial class+="form-control uppercase-input" %}
+                    </div>
+                    <div class="form-row">
+                        <label for="{{ form.numero_residencial.id_for_label }}">{{ form.numero_residencial.label }}:</label>
+                        {% render_field form.numero_residencial class+="form-control" %}
+                    </div>
+                    <div class="form-row">
+                        <label for="{{ form.complemento_residencial.id_for_label }}">{{ form.complemento_residencial.label }}:</label>
+                        {% render_field form.complemento_residencial class+="form-control uppercase-input" %}
+                    </div>
+                </div>                    
+                <div class="form-grid-3-col">
+                    <div class="form-row">
+                        <label for="{{ form.bairro_residencial.id_for_label }}">{{ form.bairro_residencial.label }}:</label>
+                        {% render_field form.bairro_residencial class+="form-control uppercase-input" %}
+                    </div>
+                    <div class="form-row">
+                        <label for="{{ form.cidade_residencial.id_for_label }}">{{ form.cidade_residencial.label }}:</label>
+                        {% render_field form.cidade_residencial class+="form-control uppercase-input" %}
+                    </div>
+                    <div class="form-row">
+                        <label for="{{ form.estado_residencial.id_for_label }}">{{ form.estado_residencial.label }}:</label>
+                        {% render_field form.estado_residencial class+="form-control uppercase-input" %}
+                    </div>
+                </div>
+            </fieldset>
+
+        </div>
+
+        <div class="submit-row" style="text-align: center; margin-top: 30px;">
+            <button type="submit" class="submit-button">Salvar Dados Cadastrais</button>
+        </div>
+    </form>
+
+    {# Scripts para Máscaras e CEP #}
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.mask/1.14.16/jquery.mask.min.js"></script>
+    <script src="{% static 'js/mask.js' %}"></script>
+    <script>
+        $(document).ready(function() {
+            $('.cpf-mask').mask('000.000.000-00');
+            $('.phone-mask').mask('(00) 0.0000-0000', {
+                onevents: 'input keyup',
+                onKeyPress: function(val, e, field, options) {
+                    var masks = ['(00) 0.0000-0000', '(00) 0.0000-0000'];
+                    var mask = (val.length > 14) ? masks[1] : masks[0];
+                    field.mask(mask, options);
+                }
+            });
+            $('.cep-mask').mask('00000-000');
+            $('.date-mask').mask('00/00/0000');
+        });
+
+        const fillAddressFields = function(scope) {
+            const fields = {
+                cep: $(`#id_cep_${scope}`),
+                logradouro: $(`#id_endereco_${scope}`),
+                bairro: $(`#id_bairro_${scope}`),
+                cidade: $(`#id_cidade_${scope}`),
+                estado: $(`#id_estado_${scope}`),
+                numero: $(`#id_numero_${scope}`)
+            };
+            const cep = fields.cep.val().replace(/\D/g, '');
+            if (cep.length === 8) {
+                fields.logradouro.val('...');
+                fields.bairro.val('...');
+                fields.cidade.val('...');
+                fields.estado.val('');
+                $.getJSON(`https://viacep.com.br/ws/${cep}/json/`, function(data) {
+                    if (!("erro" in data)) {
+                        fields.logradouro.val(data.logradouro ? data.logradouro.toUpperCase() : '');
+                        fields.bairro.val(data.bairro ? data.bairro.toUpperCase() : '');
+                        fields.cidade.val(data.localidade ? data.localidade.toUpperCase() : '');
+                        fields.estado.val(data.uf);
+                        fields.numero.focus();
+                    } else {
+                        fields.logradouro.val('');
+                        alert(`CEP ${fields.cep.val()} não encontrado.`);
+                    }
+                }).fail(function() {
+                    alert("Erro ao consultar a API de CEP.");
+                });
+            }
+        };
+
+        $("#id_cep_residencial").blur(function() { fillAddressFields('residencial'); });
+        $("#id_cep_comercial").blur(function() { fillAddressFields('comercial'); });
+    </script>
+
+    <style>
+        /* Layout geral do formulário */
+        .ficha-form fieldset { border: 1px solid #ccc; border-radius: 4px; padding: 20px; margin-bottom: 25px; }
+        .ficha-form legend { font-weight: bold; font-size: 1.2em; color: #0056b3; padding: 0 10px; margin-left: -5px; }
+        .ficha-form .form-row { display: flex; flex-direction: column; }
+        .ficha-form .form-row label { font-size: 0.9em; margin-bottom: 5px; color: #555; font-weight: bold; }
+        .ficha-form .form-control { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+        .ficha-form .submit-button { padding: 12px 30px; font-size: 1.1em; background-color: #38a169; color: white; border: none; border-radius: 44px; cursor: pointer; font-weight: bold; }
+        .ficha-form .full-width { grid-column: 1 / -1; }
+        .ficha-form .errornote { color: red; margin-bottom: 10px; padding: 10px; border: 1px solid red; border-radius: 4px; }
+        .ficha-form .errorlist { color: red; list-style: none; padding-left: 0; margin-top: 5px; font-size: 0.85em; font-weight: bold; }
+
+        /* Grids padronizados */
+        .form-grid-1-col { display: grid; grid-template-columns: 1fr; gap: 20px; }
+        .form-grid-2-col { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
+        .form-grid-3-col { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+        .form-grid-4-col { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
+        .form-grid-endereco { display: grid; grid-template-columns: 1fr 1fr 0.5fr 0.5fr; gap: 20px; }
+    </style>
+
+{% endblock content %}

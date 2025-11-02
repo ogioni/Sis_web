@@ -1,3 +1,5 @@
+# clientes/models.py
+
 from django.db import models
 from django.contrib.auth.models import User 
 
@@ -37,6 +39,7 @@ class Cliente(models.Model):
     cep_residencial = models.CharField(max_length=9, verbose_name="CEP Residencial", blank=True, null=True)
     endereco_residencial = models.CharField(max_length=255, verbose_name="Endereço Residencial", blank=True, null=True)
     numero_residencial = models.CharField(max_length=10, verbose_name="Nº", blank=True, null=True)
+    complemento_residencial = models.CharField(max_length=100, verbose_name="Complemento", blank=True, null=True) # <--- NOVO
     bairro_residencial = models.CharField(max_length=100, verbose_name="Bairro", blank=True, null=True)
     cidade_residencial = models.CharField(max_length=100, verbose_name="Cidade", blank=True, null=True)
     estado_residencial = models.CharField(max_length=2, verbose_name="UF", blank=True, null=True)
@@ -50,6 +53,7 @@ class Cliente(models.Model):
     telefone_comercial = models.CharField(max_length=20, verbose_name="Telefone Comercial", blank=True, null=True)
     cep_comercial = models.CharField(max_length=9, verbose_name="CEP Comercial", blank=True, null=True)
     endereco_comercial = models.CharField(max_length=255, verbose_name="Endereço Comercial", blank=True, null=True)
+    complemento_comercial = models.CharField(max_length=100, verbose_name="Complemento Comercial", blank=True, null=True) # <--- NOVO
 
     # ----------------------------------------
     # 3. REFERÊNCIAS

@@ -7,6 +7,7 @@ import re # Para limpar o CPF
 
 # --- FUNÇÃO DE VALIDAÇÃO DE CPF (Algoritmo) ---
 def validate_cpf_algorithm(cpf_limpo):
+# ... (código validate_cpf_algorithm inalterado) ...
     if len(cpf_limpo) != 11 or cpf_limpo == cpf_limpo[0] * 11:
         return False
     # Algoritmo de validação (Dígito 1)
@@ -30,6 +31,7 @@ def validate_cpf_algorithm(cpf_limpo):
 
 # --- [NOVO] FUNÇÃO DE VALIDAÇÃO DE CNPJ (Algoritmo) ---
 def validate_cnpj_algorithm(cnpj_limpo):
+# ... (código validate_cnpj_algorithm inalterado) ...
     if len(cnpj_limpo) != 14 or cnpj_limpo == cnpj_limpo[0] * 14:
         return False
 
@@ -80,6 +82,7 @@ ESTADO_CIVIL_CHOICES = [
 
 # --- FORMULÁRIO PARA A FASE 1 (Auto-Registro - COM NOVAS VALIDAÇÕES) ---
 class FichaCadastralClienteForm(forms.ModelForm):
+# ... (código FichaCadastralClienteForm inalterado) ...
     
     # Adicionando (*) aos campos obrigatórios (required=True)
     nome_completo = forms.CharField(label='Nome Completo (*)', widget=forms.TextInput(attrs={'required': True, 'class': 'uppercase-input'}))
@@ -110,7 +113,7 @@ class FichaCadastralClienteForm(forms.ModelForm):
             'email', 'email_confirm'
         ]
 
-    # --- INÍCIO DAS NOVAS VALIDAÇÕES ---
+    # ... (Métodos clean_ inalterados) ...
     def clean_nome_completo(self):
         nome = self.cleaned_data.get('nome_completo')
         if nome:
@@ -173,58 +176,88 @@ class ClienteManutencaoForm(forms.ModelForm):
     
     class Meta:
         model = Cliente
-        fields = '__all__'
+        # Aqui definimos a ordem e incluímos os novos campos
+        fields = (
+            'nome_completo', 'data_nascimento', 'cpf', 'rg', 
+            'rg_orgao_expeditor', 'rg_uf', 'estado_civil',
+            'nome_mae', 'nome_pai', 'cnh', 'validade_cnh',
+            
+            'email', 'telefone', 'celular',
+            
+            # Endereço Residencial (NOVA ORDEM COM COMPLEMENTO)
+            'cep_residencial', 'endereco_residencial', 
+            'numero_residencial', 'complemento_residencial', # <--- NOVO
+            'bairro_residencial', 'cidade_residencial', 'estado_residencial',
+            
+            # Dados Profissionais
+            'empresa', 'cargo', 'renda_mensal', 'telefone_comercial', 
+            'cep_comercial', 'endereco_comercial', 'complemento_comercial', # <--- NOVO
+            
+            # Referências
+            'ref_pessoal_nome', 'ref_pessoal_telefone', 
+            'ref_bancaria_banco', 'ref_bancaria_agencia', 'ref_bancaria_conta',
+            
+            # Condutor Adicional
+            'condutor_nome', 'condutor_data_nasc', 'condutor_rg', 'condutor_cpf', 
+            'condutor_cnh', 'condutor_validade_cnh', 'condutor_nome_mae', 
+            'condutor_email', 'condutor_telefone',
+            
+            # Controles Internos
+            'data_cadastro', 'ativo', 'tipo_pessoa', 'user',
+        )
         exclude = ('user', 'data_cadastro', 'ativo', 'tipo_pessoa')
         widgets = {
             # --- Dados Pessoais ---
             'nome_completo': forms.TextInput(attrs={'class': 'uppercase-input'}),
-            'data_nascimento': forms.TextInput(attrs={'placeholder': 'DD/MM/AAAA'}),
-            'cpf': forms.TextInput(attrs={'readonly': True}), 
+            'data_nascimento': forms.TextInput(attrs={'placeholder': 'DD/MM/AAAA', 'class': 'date-mask'}),
+            'cpf': forms.TextInput(attrs={'readonly': True, 'class': 'cpf-mask'}), 
             'rg': forms.TextInput(attrs={'class': 'uppercase-input'}),
             'rg_orgao_expeditor': forms.TextInput(attrs={'class': 'uppercase-input'}),
-            'rg_uf': forms.Select(), 
+            'rg_uf': forms.Select(choices=UF_CHOICES), 
             'cnh': forms.TextInput(attrs={'class': 'uppercase-input'}),
-            'validade_cnh': forms.TextInput(attrs={'placeholder': 'DD/MM/AAAA'}),
+            'validade_cnh': forms.TextInput(attrs={'placeholder': 'DD/MM/AAAA', 'class': 'date-mask'}),
             'nome_mae': forms.TextInput(attrs={'class': 'uppercase-input'}),
             'nome_pai': forms.TextInput(attrs={'class': 'uppercase-input'}),
-            'estado_civil': forms.Select(), 
+            'estado_civil': forms.Select(choices=ESTADO_CIVIL_CHOICES), 
             
             # Contato
             'email': forms.EmailInput(attrs={'readonly': True}), 
-            'telefone': forms.TextInput(attrs={'placeholder': '(00) 0000-0000'}),
-            'celular': forms.TextInput(attrs={'placeholder': '(00) 0.0000-0000'}),
+            'telefone': forms.TextInput(attrs={'placeholder': '(00) 0000-0000', 'class': 'phone-mask-fixo'}),
+            'celular': forms.TextInput(attrs={'placeholder': '(00) 0.0000-0000', 'class': 'phone-mask-celular'}),
 
             # Endereço Residencial
-            'cep_residencial': forms.TextInput(attrs={'placeholder': '00000-000'}),
+            'cep_residencial': forms.TextInput(attrs={'placeholder': '00000-000', 'class': 'cep-mask'}),
             'endereco_residencial': forms.TextInput(attrs={'class': 'uppercase-input'}),
             'numero_residencial': forms.TextInput(),
+            'complemento_residencial': forms.TextInput(attrs={'class': 'uppercase-input'}), # <--- NOVO WIDGET
             'bairro_residencial': forms.TextInput(attrs={'class': 'uppercase-input'}),
             'cidade_residencial': forms.TextInput(attrs={'class': 'uppercase-input'}),
-            'estado_residencial': forms.Select(),
+            'estado_residencial': forms.Select(choices=UF_CHOICES),
 
             # Dados Profissionais
             'empresa': forms.TextInput(attrs={'class': 'uppercase-input'}),
             'cargo': forms.TextInput(attrs={'class': 'uppercase-input'}),
-            'renda_mensal': forms.NumberInput(attrs={'placeholder': '0.00'}),
-            'telefone_comercial': forms.TextInput(attrs={'placeholder': '(00) 0000-0000'}),
-            'cep_comercial': forms.TextInput(attrs={'placeholder': '00000-000'}),
+            'renda_mensal': forms.NumberInput(attrs={'placeholder': '0.00', 'class': 'currency-mask'}),
+            'telefone_comercial': forms.TextInput(attrs={'placeholder': '(00) 0000-0000', 'class': 'phone-mask-fixo'}),
+            'cep_comercial': forms.TextInput(attrs={'placeholder': '00000-000', 'class': 'cep-mask'}),
             'endereco_comercial': forms.TextInput(attrs={'class': 'uppercase-input'}),
-
+            'complemento_comercial': forms.TextInput(attrs={'class': 'uppercase-input'}), # <--- NOVO WIDGET
+            
             # Referências
             'ref_pessoal_nome': forms.TextInput(attrs={'class': 'uppercase-input'}),
-            'ref_pessoal_telefone': forms.TextInput(attrs={'placeholder': '(00) 0.0000-0000'}),
+            'ref_pessoal_telefone': forms.TextInput(attrs={'placeholder': '(00) 0.0000-0000', 'class': 'phone-mask-celular'}),
             'ref_bancaria_banco': forms.TextInput(attrs={'class': 'uppercase-input'}),
             'ref_bancaria_agencia': forms.TextInput(),
             'ref_bancaria_conta': forms.TextInput(),
 
             # Condutor Adicional
             'condutor_nome': forms.TextInput(attrs={'class': 'uppercase-input'}),
-            'condutor_data_nasc': forms.TextInput(attrs={'placeholder': 'DD/MM/AAAA'}),
+            'condutor_data_nasc': forms.TextInput(attrs={'placeholder': 'DD/MM/AAAA', 'class': 'date-mask'}),
             'condutor_rg': forms.TextInput(attrs={'class': 'uppercase-input'}),
-            'condutor_cpf': forms.TextInput(attrs={'placeholder': '000.000.000-00'}),
+            'condutor_cpf': forms.TextInput(attrs={'placeholder': '000.000.000-00', 'class': 'cpf-mask'}),
             'condutor_cnh': forms.TextInput(attrs={'class': 'uppercase-input'}),
-            'condutor_validade_cnh': forms.TextInput(attrs={'placeholder': 'DD/MM/AAAA'}),
+            'condutor_validade_cnh': forms.TextInput(attrs={'placeholder': 'DD/MM/AAAA', 'class': 'date-mask'}),
             'condutor_nome_mae': forms.TextInput(attrs={'class': 'uppercase-input'}),
             'condutor_email': forms.EmailInput(),
-            'condutor_telefone': forms.TextInput(attrs={'placeholder': '(00) 0.0000-0000'}),
+            'condutor_telefone': forms.TextInput(attrs={'placeholder': '(00) 0.0000-0000', 'class': 'phone-mask-celular'}),
         }
