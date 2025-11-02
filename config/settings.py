@@ -17,69 +17,69 @@ ALLOWED_HOSTS = []
 
 # Application definition
 INSTALLED_APPS = [
-    'django.contrib.admin',
-    'django.contrib.auth',
-    'django.contrib.contenttypes',
-    'django.contrib.sessions',
-    'django.contrib.messages',
-    'django.contrib.staticfiles',
-    'django.contrib.sites', 
-    'users', 
-    'anymail', 
-    'clientes.apps.ClientesConfig',
-    'core.apps.CoreConfig', # [ADICIONADO] Nosso novo app de configurações
-    'js_asset',
-    'widget_tweaks',
+        'django.contrib.admin',
+        'django.contrib.auth',
+        'django.contrib.contenttypes',
+        'django.contrib.sessions',
+        'django.contrib.messages',
+        'django.contrib.staticfiles',
+        'django.contrib.sites', 
+        'users', 
+        'anymail', 
+        'clientes.apps.ClientesConfig',
+        'core.apps.CoreConfig', # [ADICIONADO] Nosso novo app de configurações
+        'js_asset',
+        'widget_tweaks',
 ]
 
 SITE_ID = 1 
 
 MIDDLEWARE = [
-    'django.middleware.security.SecurityMiddleware',
-    'django.contrib.sessions.middleware.SessionMiddleware',
-    'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
-    'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'django.contrib.messages.middleware.MessageMiddleware',
-    'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'users.middleware.MinhaPasswordChangeMiddleware',
+        'django.middleware.security.SecurityMiddleware',
+        'django.contrib.sessions.middleware.SessionMiddleware',
+        'django.middleware.common.CommonMiddleware',
+        'django.middleware.csrf.CsrfViewMiddleware',
+        'django.contrib.auth.middleware.AuthenticationMiddleware',
+        'django.contrib.messages.middleware.MessageMiddleware',
+        'django.middleware.clickjacking.XFrameOptionsMiddleware',
+        'users.middleware.MinhaPasswordChangeMiddleware',
 ]
 
 ROOT_URLCONF = 'config.urls'
 
 TEMPLATES = [
-    {
-        'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [os.path.join(BASE_DIR, 'templates')],
-        'APP_DIRS': True,
-        'OPTIONS': {
-            'context_processors': [
-                'django.template.context_processors.debug',
-                'django.template.context_processors.request',
-                'django.contrib.auth.context_processors.auth',
-                'django.contrib.messages.context_processors.messages',
-                'core.context_processors.site_config_processor', # [ADICIONADO] Injeta o logo e nome
-            ],
+        {
+                'BACKEND': 'django.template.backends.django.DjangoTemplates',
+                'DIRS': [os.path.join(BASE_DIR, 'templates')],
+                'APP_DIRS': True,
+                'OPTIONS': {
+                        'context_processors': [
+                                'django.template.context_processors.debug',
+                                'django.template.context_processors.request',
+                                'django.contrib.auth.context_processors.auth',
+                                'django.contrib.messages.context_processors.messages',
+                                'core.context_processors.site_config_processor', 
+                        ],
+                },
         },
-    },
 ]
 
 WSGI_APPLICATION = 'config.wsgi.application'
 
 # Database
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
+        'default': {
+                'ENGINE': 'django.db.backends.sqlite3',
+                'NAME': BASE_DIR / 'db.sqlite3',
+        }
 }
 
 # Password validation
 AUTH_PASSWORD_VALIDATORS = [
-    {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',},
-    {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',},
-    {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',},
-    {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',},
+        {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',},
+        {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',},
+        {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',},
+        {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',},
 ]
 
 # Internationalization
@@ -92,10 +92,8 @@ USE_TZ = True
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static'),] 
 
-# --- [ADICIONADO] Configuração de Mídia (Uploads) ---
-# URL pública para os arquivos de upload (ex: /media/logos/meulogo.png)
+# --- Configuração de Mídia (Uploads) ---
 MEDIA_URL = '/media/'
-# Caminho no sistema de arquivos onde o Django salvará os uploads
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 # --- FIM DA ADIÇÃO ---
 
@@ -108,26 +106,32 @@ SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 LOGIN_URL = '/login/' # Tela de login principal
 
 # --- CORREÇÃO APLICADA AQUI ---
-# Definimos como None para forçar o Django a usar a FUNÇÃO abaixo.
 LOGIN_REDIRECT_URL = '/' 
-#LOGIN_REDIRECT_URL_FUNCTION = 'clientes.login_redirect.custom_login_redirect' # APONTA PARA A FUNÇÃO "PORTEIRO"
 # --- FIM DA CORREÇÃO ---
 
-# Email Configs
-EMAIL_BACKEND = config('EMAIL_BACKEND', default='django.core.mail.backends.console.EmailBackend') 
-EMAIL_HOST = config('EMAIL_HOST', default='smtp.sendgrid.net')
-EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='')
-EMAIL_PORT = config('EMAIL_PORT', default=587, cast=int)
-EMAIL_USE_TLS = config('EMAIL_USE_TLS', default=True, cast=bool)
-EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='') 
 
+# ====================================================================
+# [MODIFICADO] CONFIGURAÇÃO DINÂMICA DE E-MAIL
+# As credenciais são lidas da tabela SiteConfiguracao (Admin)
+# ====================================================================
+
+# O Anymail é o backend que vamos usar se as credenciais ADMIN forem preenchidas.
+# Se as credenciais no Admin estiverem vazias, o 'default' (console) será usado.
+EMAIL_BACKEND = config('EMAIL_BACKEND', default='django.core.mail.backends.console.EmailBackend') 
+
+# As configurações de host/porta/senha/tls SÃO IGNORADAS AQUI e lidas pela view.
+
+# Se você estiver usando Anymail e precisar de uma chave GLOBAL (não dinâmica),
+# ela fica aqui (mas não a usamos na view).
 ANYMAIL = {
-    "SENDGRID_API_KEY": config("SENDGRID_API_KEY", default=""),
+        "SENDGRID_API_KEY": config("SENDGRID_API_KEY", default=""),
 }
+
+# Este é o e-mail remetente padrão de fallback (Será sobrescrito pelo Admin/SiteConfiguracao)
 DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='seu-email-aqui@dominio.com')
 SERVER_EMAIL = DEFAULT_FROM_EMAIL
 
-# reCAPTCHA (ainda não usado, mas configurado)
+# ReCAPTCHA (ainda não usado, mas configurado)
 RECAPTCHA_PUBLIC_KEY = config('RECAPTCHA_PUBLIC_KEY', default='')
 RECAPTCHA_PRIVATE_KEY = config('RECAPTCHA_PRIVATE_KEY', default='')
 NOCAPTCHA = True
