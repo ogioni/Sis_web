@@ -185,7 +185,7 @@ class ClienteManutencaoForm(forms.ModelForm):
 
     class Meta:
         model = Cliente
-        # Aqui definimos a ordem e incluímos os novos campos
+        # Aqui definimos a ordem e INCLUÍMOS OS NOVOS CAMPOS DE ENDEREÇO COMERCIAL
         fields = (
             'nome_completo', 'data_nascimento', 'cpf', 'rg', 
             'rg_orgao_expeditor', 'rg_uf', 'estado_civil',
@@ -198,9 +198,11 @@ class ClienteManutencaoForm(forms.ModelForm):
             'numero_residencial', 'complemento_residencial', 
             'bairro_residencial', 'cidade_residencial', 'estado_residencial',
             
-            # Dados Profissionais
+            # Dados Profissionais (TODOS OS CAMPOS DE ENDEREÇO COMERCIAL AGORA INCLUÍDOS)
             'empresa', 'cargo', 'renda_mensal', 'telefone_comercial', 
-            'cep_comercial', 'endereco_comercial', 'complemento_comercial', 
+            'cep_comercial', 'endereco_comercial', 'numero_comercial', 
+            'complemento_comercial', 'bairro_comercial', 'cidade_comercial', 
+            'estado_comercial', # <--- NOVOS CAMPOS INCLUÍDOS AQUI
             
             # Referências
             'ref_pessoal_nome', 'ref_pessoal_telefone', 
@@ -250,11 +252,15 @@ class ClienteManutencaoForm(forms.ModelForm):
             'telefone_comercial': forms.TextInput(attrs={'placeholder': '(00) 0000-0000', 'class': 'phone-mask-fixo'}),
             'cep_comercial': forms.TextInput(attrs={'placeholder': '00000-000', 'class': 'cep-mask'}),
             'endereco_comercial': forms.TextInput(attrs={'class': 'uppercase-input'}),
-            'complemento_comercial': forms.TextInput(attrs={'class': 'uppercase-input'}), 
+            'numero_comercial': forms.TextInput(), # <--- NOVO WIDGET
+            'complemento_comercial': forms.TextInput(attrs={'class': 'uppercase-input'}),
+            'bairro_comercial': forms.TextInput(attrs={'class': 'uppercase-input'}), # <--- NOVO WIDGET
+            'cidade_comercial': forms.TextInput(attrs={'class': 'uppercase-input'}), # <--- NOVO WIDGET
+            'estado_comercial': forms.Select(choices=UF_CHOICES), # <--- NOVO WIDGET
             
             # Referências
             'ref_pessoal_nome': forms.TextInput(attrs={'class': 'uppercase-input'}),
-            'ref_pessoal_telefone': forms.TextInput(attrs={'placeholder': '(00) 9.0000-0000', 'class': 'phone-mask-celular'}),
+            'ref_pessoal_telefone': forms.TextInput(attrs={'placeholder': '(00) 0.0000-0000', 'class': 'phone-mask-celular'}),
             'ref_bancaria_banco': forms.TextInput(attrs={'class': 'uppercase-input'}),
             'ref_bancaria_agencia': forms.TextInput(),
             'ref_bancaria_conta': forms.TextInput(),
@@ -268,7 +274,7 @@ class ClienteManutencaoForm(forms.ModelForm):
             'condutor_validade_cnh': forms.TextInput(attrs={'placeholder': 'DD/MM/AAAA', 'class': 'date-mask'}),
             'condutor_nome_mae': forms.TextInput(attrs={'class': 'uppercase-input'}),
             'condutor_email': forms.EmailInput(),
-            'condutor_telefone': forms.TextInput(attrs={'placeholder': '(00) 9.0000-0000', 'class': 'phone-mask-celular'}),
+            'condutor_telefone': forms.TextInput(attrs={'placeholder': '(00) 0.0000-0000', 'class': 'phone-mask-celular'}),
         }
     
     # *** MÉTODO CLEAN PARA O CPF PRINCIPAL (IGNORA MÁSCARA, VALIDA ALGORITMO) ***

@@ -1,3 +1,4 @@
+<!--templates/clientes/ficha_cadastral.html-->
 {% extends "clientes/base_cliente.html" %}
 {% load widget_tweaks %}
 {% load static %}
@@ -22,17 +23,17 @@
             <div class="errornote">
                 {% for error in form.non_field_errors %}
                     {{ error }}
-                {% endfor %}
+                    {% endfor %}
             </div>
         {% endif %}
 
         <div class="form-sections">
 
-            {# ========================================= #}
-            {# 1. DADOS PESSOAIS E DOCUMENTOS #}
-            {# ========================================= #}
+            {# ==================================================== #}
+            {# 1. DADOS PESSOAIS E HABILITAÇÃO (COMPLETO) #}
+            {# ==================================================== #}
             <fieldset>
-                <legend>Dados Pessoais (Fase 1)</legend>
+                <legend>1. Dados Pessoais e Habilitação</legend>
                 <div class="form-grid-3-col">
                     <div class="form-row full-width">
                         <label for="{{ form.nome_completo.id_for_label }}">
@@ -70,20 +71,29 @@
                         <label for="{{ form.estado_civil.id_for_label }}">{{ form.estado_civil.label }}:</label>
                         {% render_field form.estado_civil class+="form-control" %}
                     </div>
+                    {# NOVOS CAMPOS CNH E VALIDADE (Movidos do Bloco 2) #}
+                    <div class="form-row">
+                        <label for="{{ form.cnh.id_for_label }}">{{ form.cnh.label }}:</label>
+                        {% render_field form.cnh class+="form-control uppercase-input" %}
+                    </div>
+                    <div class="form-row">
+                        <label for="{{ form.validade_cnh.id_for_label }}">{{ form.validade_cnh.label }}:</label>
+                        {% render_field form.validade_cnh class+="form-control date-mask" %}
+                    </div>
+                </div>
             </fieldset>
 
             {# ======================================= #}
-            {# 3. FILIAÇÃO #}
+            {# 2. FILIAÇÃO #}
             {# ========================================= #}
-
-           <fieldset>
-                <legend>Filiação</legend>
+            <fieldset>
+                <legend>2. Filiação</legend>
                 <div class="form-grid-2-col">
                     <div class="form-row">
                         <label for="{{ form.nome_mae.id_for_label }}">{{ form.nome_mae.label }}:</label>
                         {% render_field form.nome_mae class+="form-control uppercase-input" %}
                     </div>
-                <div class="form-row">
+                    <div class="form-row">
                         <label for="{{ form.nome_pai.id_for_label }}">{{ form.nome_pai.label }}:</label>
                         {% render_field form.nome_pai class+="form-control uppercase-input" %}
                     </div>
@@ -95,7 +105,7 @@
             {# 3. CONTATO #}
             {# ========================================= #}
             <fieldset>
-                <legend>Contato</legend>
+                <legend>3. Contato</legend>
                 <div class="form-grid-3-col">
                     <div class="form-row">
                         <label for="{{ form.email.id_for_label }}">{{ form.email.label }}:</label>
@@ -113,10 +123,10 @@
             </fieldset>
 
             {# ========================================= #}
-            {# 4. ENDEREÇO (CEP / Logradouro / Número / Complemento) #}
+            {# 4. ENDEREÇO RESIDENCIAL #}
             {# ========================================= #}
             <fieldset>
-                <legend>Endereço Residencial</legend>
+                <legend>4. Endereço Residencial</legend>
                 <div class="form-grid-endereco">
                     <div class="form-row">
                         <label for="{{ form.cep_residencial.id_for_label }}">{{ form.cep_residencial.label }}:</label>
@@ -134,8 +144,8 @@
                         <label for="{{ form.complemento_residencial.id_for_label }}">{{ form.complemento_residencial.label }}:</label>
                         {% render_field form.complemento_residencial class+="form-control uppercase-input" %}
                     </div>
-                </div>                    
-                <div class="form-grid-3-col">
+                </div> 
+                <div class="form-grid-3-col" style="margin-top: 20px;">
                     <div class="form-row">
                         <label for="{{ form.bairro_residencial.id_for_label }}">{{ form.bairro_residencial.label }}:</label>
                         {% render_field form.bairro_residencial class+="form-control uppercase-input" %}
@@ -151,6 +161,145 @@
                 </div>
             </fieldset>
 
+            {# ========================================= #}
+            {# 5. DADOS PROFISSIONAIS (NOVA SEÇÃO) #}
+            {# ========================================= #}
+           <fieldset>
+                <legend>5. Dados Profissionais</legend>
+                <div class="form-grid-endereco">
+                    <div class="form-row">
+                        <label for="{{ form.empresa.id_for_label }}">{{ form.empresa.label }}:</label>
+                        {% render_field form.empresa class+="form-control uppercase-input" %}
+                    </div>
+                    <div class="form-row">
+                        <label for="{{ form.cargo.id_for_label }}">{{ form.cargo.label }}:</label>
+                        {% render_field form.cargo class+="form-control uppercase-input" %}
+                    </div>
+                    <div class="form-row">
+                        <label for="{{ form.renda_mensal.id_for_label }}">{{ form.renda_mensal.label }}:</label>
+                        {% render_field form.renda_mensal class+="form-control currency-mask" %}
+                    </div>
+                    <div class="form-row">
+                        <label for="{{ form.telefone_comercial.id_for_label }}">{{ form.telefone_comercial.label }}:</label>
+                        {% render_field form.telefone_comercial class+="form-control phone-mask" %}
+                    </div>
+                </div>
+
+                <div class="form-grid-endereco">
+                    <div class="form-row">
+                        <label for="{{ form.cep_comercial.id_for_label }}">{{ form.cep_comercial.label }}:</label>
+                        {% render_field form.cep_comercial class+="form-control cep-mask" %}
+                    </div>
+                    <div class="form-row">
+                        <label for="{{ form.endereco_comercial.id_for_label }}">{{ form.endereco_comercial.label }}:</label>
+                        {% render_field form.endereco_comercial class+="form-control uppercase-input" %}
+                    </div>
+                    <div class="form-row">
+                        <label for="{{ form.numero_comercial.id_for_label }}">{{ form.numero_comercial.label }}:</label>
+                        {% render_field form.numero_comercial class+="form-control" %}
+                    </div>
+                    <div class="form-row">
+                        <label for="{{ form.complemento_comercial.id_for_label }}">{{ form.complemento_comercial.label }}:</label>
+                        {% render_field form.complemento_comercial class+="form-control uppercase-input" %}
+                    </div>
+                </div>
+
+                <div class="form-grid-3-col" style="margin-top: 20px;">
+                    <div class="form-row">
+                        <label for="{{ form.bairro_comercial.id_for_label }}">{{ form.bairro_comercial.label }}:</label>
+                        {% render_field form.bairro_comercial class+="form-control uppercase-input" %}
+                    </div>
+                    <div class="form-row">
+                        <label for="{{ form.cidade_comercial.id_for_label }}">{{ form.cidade_comercial.label }}:</label>
+                        {% render_field form.cidade_comercial class+="form-control uppercase-input" %}
+                    </div>
+                    <div class="form-row">
+                        <label for="{{ form.estado_comercial.id_for_label }}">{{ form.estado_comercial.label }}:</label>
+                        {% render_field form.estado_comercial class+="form-control uppercase-input" %}
+                    </div>
+                </div>  
+             </fieldset>
+
+            {# ========================================= #}
+            {# 6. REFERÊNCIAS (NOVA SEÇÃO) #}
+            {# ========================================= #}
+            <fieldset>
+                <legend>6. Referências (Pessoal e Bancária)</legend>
+                <h4>Referência Pessoal</h4>
+                <div class="form-grid-2-col">
+                    <div class="form-row">
+                        <label for="{{ form.ref_pessoal_nome.id_for_label }}">{{ form.ref_pessoal_nome.label }}:</label>
+                        {% render_field form.ref_pessoal_nome class+="form-control uppercase-input" %}
+                    </div>
+                    <div class="form-row">
+                        <label for="{{ form.ref_pessoal_telefone.id_for_label }}">{{ form.ref_pessoal_telefone.label }}:</label>
+                        {% render_field form.ref_pessoal_telefone class+="form-control phone-mask" %}
+                    </div>
+                </div>
+                
+                <h4 style="margin-top: 30px;">Referência Bancária</h4>
+                <div class="form-grid-3-col">
+                    <div class="form-row">
+                        <label for="{{ form.ref_bancaria_banco.id_for_label }}">{{ form.ref_bancaria_banco.label }}:</label>
+                        {% render_field form.ref_bancaria_banco class+="form-control uppercase-input" %}
+                    </div>
+                    <div class="form-row">
+                        <label for="{{ form.ref_bancaria_agencia.id_for_label }}">{{ form.ref_bancaria_agencia.label }}:</label>
+                        {% render_field form.ref_bancaria_agencia class+="form-control" %}
+                    </div>
+                    <div class="form-row">
+                        <label for="{{ form.ref_bancaria_conta.id_for_label }}">{{ form.ref_bancaria_conta.label }}:</label>
+                        {% render_field form.ref_bancaria_conta class+="form-control" %}
+                    </div>
+                </div>
+            </fieldset>
+
+            {# ========================================= #}
+            {# 7. CONDUTOR ADICIONAL (NOVA SEÇÃO) #}
+            {# ========================================= #}
+            <fieldset>
+                <legend>7. Condutor Adicional</legend>
+                <div class="form-grid-3-col">
+                    <div class="form-row full-width">
+                        <label for="{{ form.condutor_nome.id_for_label }}">{{ form.condutor_nome.label }}:</label>
+                        {% render_field form.condutor_nome class+="form-control uppercase-input" %}
+                    </div>
+                    <div class="form-row">
+                        <label for="{{ form.condutor_data_nasc.id_for_label }}">{{ form.condutor_data_nasc.label }}:</label>
+                        {% render_field form.condutor_data_nasc class+="form-control date-mask" %}
+                    </div>
+                    <div class="form-row">
+                        <label for="{{ form.condutor_rg.id_for_label }}">{{ form.condutor_rg.label }}:</label>
+                        {% render_field form.condutor_rg class+="form-control uppercase-input" %}
+                    </div>
+                    <div class="form-row">
+                        <label for="{{ form.condutor_cpf.id_for_label }}">{{ form.condutor_cpf.label }}:</label>
+                        {% render_field form.condutor_cpf class+="form-control cpf-mask" %}
+                    </div>
+                    <div class="form-row">
+                        <label for="{{ form.condutor_cnh.id_for_label }}">{{ form.condutor_cnh.label }}:</label>
+                        {% render_field form.condutor_cnh class+="form-control uppercase-input" %}
+                    </div>
+                    <div class="form-row">
+                        <label for="{{ form.condutor_validade_cnh.id_for_label }}">{{ form.condutor_validade_cnh.label }}:</label>
+                        {% render_field form.condutor_validade_cnh class+="form-control date-mask" %}
+                    </div>
+                    <div class="form-row full-width">
+                        <label for="{{ form.condutor_nome_mae.id_for_label }}">{{ form.condutor_nome_mae.label }}:</label>
+                        {% render_field form.condutor_nome_mae class+="form-control uppercase-input" %}
+                    </div>
+                    <div class="form-row">
+                        <label for="{{ form.condutor_email.id_for_label }}">{{ form.condutor_email.label }}:</label>
+                        {% render_field form.condutor_email class+="form-control" %}
+                    </div>
+                    <div class="form-row">
+                        <label for="{{ form.condutor_telefone.id_for_label }}">{{ form.condutor_telefone.label }}:</label>
+                        {% render_field form.condutor_telefone class+="form-control phone-mask" %}
+                    </div>
+                </div>
+            </fieldset>
+
+
         </div>
 
         <div class="submit-row" style="text-align: center; margin-top: 30px;">
@@ -164,22 +313,30 @@
     <script src="{% static 'js/mask.js' %}"></script>
     <script>
         $(document).ready(function() {
+            // MÁSCARAS
             $('.cpf-mask').mask('000.000.000-00');
-            $('.phone-mask').mask('(00) 0.0000-0000', {
-                onevents: 'input keyup',
-                onKeyPress: function(val, e, field, options) {
-                    var masks = ['(00) 0.0000-0000', '(00) 0.0000-0000'];
-                    var mask = (val.length > 14) ? masks[1] : masks[0];
-                    field.mask(mask, options);
-                }
-            });
             $('.cep-mask').mask('00000-000');
             $('.date-mask').mask('00/00/0000');
+            $('.currency-mask').mask('0.000.000,00', { reverse: true, placeholder: "0,00" });
+
+            // MÁSCARA CELULAR/FIXO DINÂMICA
+            var phoneMaskBehavior = function (val, e, field, options) {
+                return val.replace(/\D/g, '').length === 11 ? '(00) 0.0000-0000' : '(00) 0000-0000';
+            };
+            $('.phone-mask').mask(phoneMaskBehavior, {
+                onKeyPress: function(val, e, field, options) {
+                    field.mask(phoneMaskBehavior.apply({}, arguments), options);
+                }
+            });
         });
 
+        // ===================================
+        // FUNÇÃO DE BUSCA CEP (VIA CEP)
+        // ===================================
         const fillAddressFields = function(scope) {
             const fields = {
-                cep: $(`#id_cep_${scope}`),
+                // Acessa campos com id_cep_residencial ou id_cep_comercial
+                cep: $(`#id_cep_${scope}`), 
                 logradouro: $(`#id_endereco_${scope}`),
                 bairro: $(`#id_bairro_${scope}`),
                 cidade: $(`#id_cidade_${scope}`),
@@ -188,10 +345,12 @@
             };
             const cep = fields.cep.val().replace(/\D/g, '');
             if (cep.length === 8) {
+                // Limpa e coloca loading
                 fields.logradouro.val('...');
                 fields.bairro.val('...');
                 fields.cidade.val('...');
                 fields.estado.val('');
+                
                 $.getJSON(`https://viacep.com.br/ws/${cep}/json/`, function(data) {
                     if (!("erro" in data)) {
                         fields.logradouro.val(data.logradouro ? data.logradouro.toUpperCase() : '');
@@ -209,14 +368,16 @@
             }
         };
 
+        // BIND DE EVENTOS
         $("#id_cep_residencial").blur(function() { fillAddressFields('residencial'); });
-        $("#id_cep_comercial").blur(function() { fillAddressFields('comercial'); });
+        $("#id_cep_comercial").blur(function() { fillAddressFields('comercial'); }); // NOVO BIND
     </script>
 
     <style>
         /* Layout geral do formulário */
         .ficha-form fieldset { border: 1px solid #ccc; border-radius: 4px; padding: 20px; margin-bottom: 25px; }
         .ficha-form legend { font-weight: bold; font-size: 1.2em; color: #0056b3; padding: 0 10px; margin-left: -5px; }
+        .ficha-form h4 { font-size: 1em; color: #333; margin-top: 0; } /* Estilo para os subtítulos (Referências) */
         .ficha-form .form-row { display: flex; flex-direction: column; }
         .ficha-form .form-row label { font-size: 0.9em; margin-bottom: 5px; color: #555; font-weight: bold; }
         .ficha-form .form-control { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
