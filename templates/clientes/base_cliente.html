@@ -6,18 +6,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}{% endblock title %} - {{ site_config.nome_empresa|default:"Lider Drive" }}</title>
     <style>
+        /* [PADRÃO DESKTOP] Layout principal de duas colunas */
         body { margin: 0; font-family: sans-serif; background-color: #f4f4f4; min-height: 100vh; }
         
-        /* Layout Principal do Dashboard (GRID) */
         .dashboard-layout {
             display: grid;
-            grid-template-columns: 220px 1fr; /* 220px para Sidebar, 1fr para Conteúdo */
+            grid-template-columns: 220px 1fr; /* DESKTOP GRID */
             min-height: 100vh;
         }
 
-        /* --- Sidebar (Menu Lateral) --- */
+        /* --- Sidebar (Menu Lateral) - DEVE FUNCIONAR NO DESKTOP --- */
         .sidebar {
-            background-color: #0d2c4f; /* Azul escuro */
+            background-color: #0d2c4f; 
             color: white;
             padding: 20px;
             box-shadow: 2px 0 5px rgba(0,0,0,0.1);
@@ -26,13 +26,17 @@
             align-items: center;
         }
         .sidebar-logo { margin-bottom: 20px; }
-        /* [AJUSTADO] LOGO MAIOR */
         .sidebar-logo img { 
-            max-width: 180px; 
+            max-width: 220px; 
             max-height: 110px; 
             height: auto; 
         }
-        .sidebar-nav a {
+        /* Estilos de navegação */
+        .sidebar-nav-desktop { /* NOVO NOME PARA O MENU DESKTOP */
+            width: 100%; 
+            margin-bottom: auto; 
+        }
+        .sidebar-nav-desktop a {
             display: block;
             color: #fff;
             text-decoration: none;
@@ -43,42 +47,99 @@
             border-radius: 4px;
             transition: background-color 0.2s;
         }
-        .sidebar-nav a:hover {
-            background-color: #1a4d8c; /* Azul ligeiramente mais claro no hover */
+        .sidebar-nav-desktop a:hover {
+            background-color: #1a4d8c; 
         }
         .user-greeting { margin-top: auto; font-size: 0.9em; padding-top: 15px; border-top: 1px solid #1a4d8c; width: 100%; text-align: center;}
         
         /* --- Área de Conteúdo --- */
-        .content-area {
-            padding: 30px;
-            background-color: #ffffff; /* Fundo do conteúdo principal */
-        }
-        .content-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-            border-bottom: 1px solid #eee;
-            padding-bottom: 15px;
-        }
-        .content-header h2 {
-            color: #333;
-            margin: 0;
-        }
+        .content-area { padding: 30px; background-color: #ffffff; }
+        .content-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid #eee; padding-bottom: 15px; }
+        .content-header h2 { color: #333; margin: 0; }
         
         /* Estilo para o botão Sair */
-        .logout-link { margin-left: 20px; }
-        .link-button {
-            background: none; border: none; color: #cc0000; text-decoration: underline;
-            cursor: pointer; 
-            font-size: 2em; /* [AJUSTADO] BOTÃO SAIR MAIOR */
-            font-family: sans-serif; font-weight: bold;
+        .link-button { background: none; border: none; color: #cc0000; text-decoration: underline; cursor: pointer; font-size: 2em; font-family: sans-serif; font-weight: bold; padding: 0; }
+        
+        /* [MOBILE] Estilos */
+        .menu-toggle { display: none; } 
+        .top-bar-mobile { display: none; } 
+        .mobile-logout-button-in-menu { background: none; border: none; color: #ffcccc; text-decoration: underline; cursor: pointer; font-size: 1em; font-weight: bold; }
+        .logout-in-menu { display: none; } 
+        .sidebar-nav-mobile { display: none; } /* [NOVO] Oculto por padrão no Desktop */
+
+
+        /* ======================================= */
+        /* MEDIA QUERY: LAYOUT MOBILE (< 600px) */
+        /* ======================================= */
+        @media (max-width: 600px) {
+            .dashboard-layout {
+                grid-template-columns: 1fr; 
+            }
+            .sidebar { display: none; } /* Oculta a sidebar desktop */
+            
+            /* [REVELA TOP BAR FIXA] */
+            .top-bar-mobile {
+                display: flex; background-color: #0d2c4f; color: white; padding: 10px 15px;
+                justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 1000;
+                height: 60px;
+            }
+            
+            .mobile-actions { display: flex; align-items: center; gap: 15px; }
+            
+            .menu-toggle { display: block; order: 1; font-size: 1.5em; color: white; padding: 0 10px; }
+            
+            /* NAV Menu de navegação para aparecer */
+            .sidebar-nav-mobile {
+                display: none; /* JS irá controlar isso */
+                position: absolute;
+                top: 60px; 
+                left: 0;
+                width: 100%; /* Ajuste para cobrir 100% da largura */
+                height: auto;
+                background-color: #0d2c4f;
+                padding: 10px 0;
+                z-index: 999;
+                flex-direction: column;
+            }
+            .sidebar-nav-mobile.is-open { display: flex; } /* Revela pelo JS */
+
+            .sidebar-nav-mobile a, .sidebar-nav-mobile .logout-in-menu {
+                width: 100%; 
+                text-align: center;
+                padding: 15px;
+                border-bottom: 1px solid #1a4d8c;
+            }
+            .logout-in-menu { display: block; } /* Mostra o Sair na lista móvel */
+
+            .content-area { padding: 15px; } 
         }
     </style>
 </head>
 <body>
+    
+    <div class="top-bar-mobile" id="topBarMobile">
+        
+        <div class="mobile-actions">
+            <button class="menu-toggle" id="menuToggle">&#9776;</button> 
+            
+            <div class="sidebar-logo">
+                {% if site_config and site_config.logo %}
+                    <img src="{{ site_config.logo.url }}" alt="Logotipo {{ site_config.nome_empresa|default:"Lider Drive" }}">
+                {% else %}
+                    <img src="{% static 'logo.png' %}" alt="Logotipo Lider Drive">
+                {% endif %}
+            </div>
+        </div>
+        
+        <div class="mobile-actions">
+            <div class="user-greeting">
+                Olá, <strong>{{ user.first_name|default:user.username }}</strong>
+            </div>
+        </div>
+    </div>
     <div class="dashboard-layout">
-        <div class="sidebar">
+        
+        <div class="sidebar" id="sidebarDesktop">
             <div class="sidebar-logo">
                 {% if site_config and site_config.logo %}
                     <img src="{{ site_config.logo.url }}" alt="Logotipo {{ site_config.nome_empresa|default:"Lider Drive" }}">
@@ -87,7 +148,7 @@
                 {% endif %}
             </div>
 
-            <nav class="sidebar-nav">
+            <nav class="sidebar-nav-desktop">
                 <a href="{% url 'clientes:area_cliente' %}">Dashboard</a>
                 <a href="#">Minha Ficha Cadastral</a>
                 <a href="#">Meus Contratos</a>
@@ -104,7 +165,20 @@
                 </div>
             </div>
         </div>
-
+        <nav class="sidebar-nav-mobile" id="sidebarNavMobile">
+            <a href="{% url 'clientes:area_cliente' %}">Dashboard</a>
+            <a href="#">Minha Ficha Cadastral</a>
+            <a href="#">Meus Contratos</a>
+            <a href="#">Histórico Financeiro</a>
+            
+            <div class="logout-in-menu">
+                <form action="{% url 'logout' %}" method="post" style="width: 100%;">
+                    {% csrf_token %}
+                    <button type="submit" class="mobile-logout-button-in-menu">Sair</button>
+                </form>
+            </div>
+        </nav>
+        
         <div class="content-area">
             <div class="content-header">
                 <h2>{% block content_title %}Dashboard{% endblock content_title %}</h2>
@@ -117,5 +191,25 @@
 
         </div>
     </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const toggleButton = document.getElementById('menuToggle');
+            const navMenu = document.getElementById('sidebarNavMobile'); /* Mudado para o novo ID */
+
+            if (toggleButton && navMenu) {
+                toggleButton.addEventListener('click', function() {
+                    navMenu.classList.toggle('is-open');
+                });
+            }
+            
+            // Lógica para fechar o menu ao redimensionar (volta para desktop)
+            window.addEventListener('resize', function(event) {
+                if (window.innerWidth > 600) {
+                    navMenu.classList.remove('is-open');
+                }
+            });
+        });
+    </script>
 </body>
 </html>
