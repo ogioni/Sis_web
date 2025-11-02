@@ -1,5 +1,5 @@
 Listagem de caminhos de pasta para o volume M2_Sistema
-O número de série do volume é 6C48-B890
+O nï¿½mero de sï¿½rie do volume ï¿½ 6C48-B890
 C:.
 |   .env
 |   .gitignore
