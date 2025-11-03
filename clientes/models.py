@@ -54,13 +54,11 @@ class Cliente(models.Model):
     cep_comercial = models.CharField(max_length=9, verbose_name="CEP Comercial", blank=True, null=True)
     endereco_comercial = models.CharField(max_length=255, verbose_name="Endereço Comercial", blank=True, null=True)
     
-    # NOVOS CAMPOS ADICIONADOS AQUI:
-    numero_comercial = models.CharField(max_length=10, verbose_name="Nº Comercial", blank=True, null=True) # <-- NOVO
+    numero_comercial = models.CharField(max_length=10, verbose_name="Nº Comercial", blank=True, null=True) 
     complemento_comercial = models.CharField(max_length=100, verbose_name="Complemento Comercial", blank=True, null=True) 
-    bairro_comercial = models.CharField(max_length=100, verbose_name="Bairro Comercial", blank=True, null=True) # <-- NOVO
-    cidade_comercial = models.CharField(max_length=100, verbose_name="Cidade Comercial", blank=True, null=True) # <-- NOVO
-    estado_comercial = models.CharField(max_length=2, verbose_name="UF Comercial", blank=True, null=True) # <-- NOVO
-    # FIM DOS NOVOS CAMPOS
+    bairro_comercial = models.CharField(max_length=100, verbose_name="Bairro Comercial", blank=True, null=True) 
+    cidade_comercial = models.CharField(max_length=100, verbose_name="Cidade Comercial", blank=True, null=True) 
+    estado_comercial = models.CharField(max_length=2, verbose_name="UF Comercial", blank=True, null=True) 
 
     # ----------------------------------------
     # 3. REFERÊNCIAS
@@ -72,17 +70,37 @@ class Cliente(models.Model):
     ref_bancaria_conta = models.CharField(max_length=20, verbose_name="Ref. Bancária: Conta", blank=True, null=True)
 
     # ----------------------------------------
-    # 4. CONDUTOR ADICIONAL
+    # 4. CONDUTOR ADICIONAL (CONDUTOR 1, 2, E 3)
     # ----------------------------------------
-    condutor_nome = models.CharField(max_length=200, verbose_name="Condutor Adicional: Nome", blank=True, null=True)
-    condutor_data_nasc = models.DateField(verbose_name="Condutor Adicional: Data Nasc.", null=True, blank=True)
-    condutor_rg = models.CharField(max_length=20, verbose_name="Condutor Adicional: RG", blank=True, null=True)
-    condutor_cpf = models.CharField(max_length=14, verbose_name="Condutor Adicional: CPF", blank=True, null=True)
-    condutor_cnh = models.CharField(max_length=20, verbose_name="Nº CNH", blank=True, null=True)
-    condutor_validade_cnh = models.DateField(verbose_name="Condutor Adicional: Validade CNH", null=True, blank=True)
-    condutor_nome_mae = models.CharField(max_length=200, verbose_name="Condutor Adicional: Nome da Mãe", blank=True, null=True)
-    condutor_email = models.EmailField(max_length=100, verbose_name="Condutor Adicional: Email", blank=True, null=True)
-    condutor_telefone = models.CharField(max_length=20, verbose_name="Condutor Adicional: Telefone", blank=True, null=True)
+    
+    # --- Condutor 1 (Renomeado o verbose_name) ---
+    condutor_nome = models.CharField(max_length=200, verbose_name="Condutor 1: Nome", blank=True, null=True)
+    condutor_data_nasc = models.DateField(verbose_name="Condutor 1: Data Nasc.", null=True, blank=True)
+    condutor_rg = models.CharField(max_length=20, verbose_name="Condutor 1: RG", blank=True, null=True)
+    condutor_cpf = models.CharField(max_length=14, verbose_name="Condutor 1: CPF", blank=True, null=True)
+    condutor_cnh = models.CharField(max_length=20, verbose_name="Condutor 1: Nº CNH", blank=True, null=True)
+    condutor_validade_cnh = models.DateField(verbose_name="Condutor 1: Validade CNH", null=True, blank=True)
+    condutor_nome_mae = models.CharField(max_length=200, verbose_name="Condutor 1: Nome da Mãe", blank=True, null=True)
+    condutor_email = models.EmailField(max_length=100, verbose_name="Condutor 1: Email", blank=True, null=True)
+    condutor_telefone = models.CharField(max_length=20, verbose_name="Condutor 1: Telefone", blank=True, null=True)
+    
+    # --- Condutor 2 (NOVOS CAMPOS) ---
+    condutor2_nome = models.CharField(max_length=200, verbose_name="Condutor 2: Nome", blank=True, null=True)
+    condutor2_data_nasc = models.DateField(verbose_name="Condutor 2: Data Nasc.", null=True, blank=True)
+    condutor2_cpf = models.CharField(max_length=14, verbose_name="Condutor 2: CPF", blank=True, null=True)
+    condutor2_cnh = models.CharField(max_length=20, verbose_name="Condutor 2: Nº CNH", blank=True, null=True)
+    condutor2_validade_cnh = models.DateField(verbose_name="Condutor 2: Validade CNH", null=True, blank=True)
+    condutor2_email = models.EmailField(max_length=100, verbose_name="Condutor 2: Email", blank=True, null=True)
+    condutor2_telefone = models.CharField(max_length=20, verbose_name="Condutor 2: Telefone", blank=True, null=True)
+
+    # --- Condutor 3 (NOVOS CAMPOS) ---
+    condutor3_nome = models.CharField(max_length=200, verbose_name="Condutor 3: Nome", blank=True, null=True)
+    condutor3_data_nasc = models.DateField(verbose_name="Condutor 3: Data Nasc.", null=True, blank=True)
+    condutor3_cpf = models.CharField(max_length=14, verbose_name="Condutor 3: CPF", blank=True, null=True)
+    condutor3_cnh = models.CharField(max_length=20, verbose_name="Condutor 3: Nº CNH", blank=True, null=True)
+    condutor3_validade_cnh = models.DateField(verbose_name="Condutor 3: Validade CNH", null=True, blank=True)
+    condutor3_email = models.EmailField(max_length=100, verbose_name="Condutor 3: Email", blank=True, null=True)
+    condutor3_telefone = models.CharField(max_length=20, verbose_name="Condutor 3: Telefone", blank=True, null=True)
     
     # ----------------------------------------
     # 5. CONTROLES INTERNOS

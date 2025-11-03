@@ -174,18 +174,25 @@ class FichaCadastralClienteForm(forms.ModelForm):
 class ClienteManutencaoForm(forms.ModelForm):
     
     # *** CORREÇÃO CRÍTICA #1: Sobrescreve o campo CPF para ignorar a validação de max_length=11 do ModelForm/Model.
-    # Usamos CharField sem especificar max_length no form.
     cpf = forms.CharField(label='CPF', required=False, 
                           widget=forms.TextInput(attrs={'readonly': True, 'class': 'cpf-mask'}))
 
     # *** CORREÇÃO CRÍTICA #2: Sobrescreve o campo condutor_cpf para aceitar 14 dígitos (CNPJ) sem erro.
-    condutor_cpf = forms.CharField(label='CPF/CNPJ do Condutor', required=False, 
+    # OBS: condutor_cpf, condutor2_cpf e condutor3_cpf são sobrescritos com métodos clean personalizados abaixo.
+    condutor_cpf = forms.CharField(label='CPF/CNPJ do Condutor 1', required=False, 
                                    widget=forms.TextInput(attrs={'placeholder': '000.000.000-00', 'class': 'cpf-mask'}))
+
+    # NOVOS CAMPOS PARA CONDUTOR 2 E 3 (Sobrescrevendo a validação do Model)
+    condutor2_cpf = forms.CharField(label='CPF/CNPJ do Condutor 2', required=False, 
+                                    widget=forms.TextInput(attrs={'placeholder': '000.000.000-00', 'class': 'cpf-mask'}))
+
+    condutor3_cpf = forms.CharField(label='CPF/CNPJ do Condutor 3', required=False, 
+                                    widget=forms.TextInput(attrs={'placeholder': '000.000.000-00', 'class': 'cpf-mask'}))
 
 
     class Meta:
         model = Cliente
-        # Aqui definimos a ordem e INCLUÍMOS OS NOVOS CAMPOS DE ENDEREÇO COMERCIAL
+        # EXPANSÃO DA LISTA DE CAMPOS
         fields = (
             'nome_completo', 'data_nascimento', 'cpf', 'rg', 
             'rg_orgao_expeditor', 'rg_uf', 'estado_civil',
@@ -193,25 +200,35 @@ class ClienteManutencaoForm(forms.ModelForm):
             
             'email', 'telefone', 'celular',
             
-            # Endereço Residencial (NOVA ORDEM COM COMPLEMENTO)
+            # Endereço Residencial
             'cep_residencial', 'endereco_residencial', 
             'numero_residencial', 'complemento_residencial', 
             'bairro_residencial', 'cidade_residencial', 'estado_residencial',
             
-            # Dados Profissionais (TODOS OS CAMPOS DE ENDEREÇO COMERCIAL AGORA INCLUÍDOS)
+            # Dados Profissionais
             'empresa', 'cargo', 'renda_mensal', 'telefone_comercial', 
             'cep_comercial', 'endereco_comercial', 'numero_comercial', 
             'complemento_comercial', 'bairro_comercial', 'cidade_comercial', 
-            'estado_comercial', # <--- NOVOS CAMPOS INCLUÍDOS AQUI
+            'estado_comercial', 
             
             # Referências
             'ref_pessoal_nome', 'ref_pessoal_telefone', 
             'ref_bancaria_banco', 'ref_bancaria_agencia', 'ref_bancaria_conta',
             
-            # Condutor Adicional
+            # Condutor Adicional 1
             'condutor_nome', 'condutor_data_nasc', 'condutor_rg', 'condutor_cpf', 
             'condutor_cnh', 'condutor_validade_cnh', 'condutor_nome_mae', 
             'condutor_email', 'condutor_telefone',
+            
+            # Condutor Adicional 2 (NOVOS CAMPOS)
+            'condutor2_nome', 'condutor2_data_nasc', 'condutor2_cpf', 
+            'condutor2_cnh', 'condutor2_validade_cnh', 
+            'condutor2_email', 'condutor2_telefone',
+
+            # Condutor Adicional 3 (NOVOS CAMPOS)
+            'condutor3_nome', 'condutor3_data_nasc', 'condutor3_cpf', 
+            'condutor3_cnh', 'condutor3_validade_cnh', 
+            'condutor3_email', 'condutor3_telefone',
             
             # Controles Internos
             'data_cadastro', 'ativo', 'tipo_pessoa', 'user',
@@ -234,7 +251,7 @@ class ClienteManutencaoForm(forms.ModelForm):
             # Contato
             'email': forms.EmailInput(attrs={'readonly': True}), 
             'telefone': forms.TextInput(attrs={'placeholder': '(00) 0000-0000', 'class': 'phone-mask-fixo'}),
-            'celular': forms.TextInput(attrs={'placeholder': '(00) 9.0000-0000', 'class': 'phone-mask-celular'}),
+            'celular': forms.TextInput(attrs={'placeholder': '(00) 0.0000-0000', 'class': 'phone-mask-celular'}),
 
             # Endereço Residencial
             'cep_residencial': forms.TextInput(attrs={'placeholder': '00000-000', 'class': 'cep-mask'}),
@@ -252,11 +269,11 @@ class ClienteManutencaoForm(forms.ModelForm):
             'telefone_comercial': forms.TextInput(attrs={'placeholder': '(00) 0000-0000', 'class': 'phone-mask-fixo'}),
             'cep_comercial': forms.TextInput(attrs={'placeholder': '00000-000', 'class': 'cep-mask'}),
             'endereco_comercial': forms.TextInput(attrs={'class': 'uppercase-input'}),
-            'numero_comercial': forms.TextInput(), # <--- NOVO WIDGET
+            'numero_comercial': forms.TextInput(), 
             'complemento_comercial': forms.TextInput(attrs={'class': 'uppercase-input'}),
-            'bairro_comercial': forms.TextInput(attrs={'class': 'uppercase-input'}), # <--- NOVO WIDGET
-            'cidade_comercial': forms.TextInput(attrs={'class': 'uppercase-input'}), # <--- NOVO WIDGET
-            'estado_comercial': forms.Select(choices=UF_CHOICES), # <--- NOVO WIDGET
+            'bairro_comercial': forms.TextInput(attrs={'class': 'uppercase-input'}), 
+            'cidade_comercial': forms.TextInput(attrs={'class': 'uppercase-input'}), 
+            'estado_comercial': forms.Select(choices=UF_CHOICES), 
             
             # Referências
             'ref_pessoal_nome': forms.TextInput(attrs={'class': 'uppercase-input'}),
@@ -265,23 +282,43 @@ class ClienteManutencaoForm(forms.ModelForm):
             'ref_bancaria_agencia': forms.TextInput(),
             'ref_bancaria_conta': forms.TextInput(),
 
-            # Condutor Adicional
+            # Condutor Adicional 1 (condutor_)
             'condutor_nome': forms.TextInput(attrs={'class': 'uppercase-input'}),
             'condutor_data_nasc': forms.TextInput(attrs={'placeholder': 'DD/MM/AAAA', 'class': 'date-mask'}),
             'condutor_rg': forms.TextInput(attrs={'class': 'uppercase-input'}),
-            'condutor_cpf': forms.TextInput(attrs={'placeholder': '000.000.000-00', 'class': 'cpf-mask'}),
+            # 'condutor_cpf' Sobrescrito acima
             'condutor_cnh': forms.TextInput(attrs={'class': 'uppercase-input'}),
             'condutor_validade_cnh': forms.TextInput(attrs={'placeholder': 'DD/MM/AAAA', 'class': 'date-mask'}),
             'condutor_nome_mae': forms.TextInput(attrs={'class': 'uppercase-input'}),
             'condutor_email': forms.EmailInput(),
             'condutor_telefone': forms.TextInput(attrs={'placeholder': '(00) 0.0000-0000', 'class': 'phone-mask-celular'}),
+
+            # Condutor Adicional 2 (condutor2_)
+            'condutor2_nome': forms.TextInput(attrs={'class': 'uppercase-input'}),
+            'condutor2_data_nasc': forms.TextInput(attrs={'placeholder': 'DD/MM/AAAA', 'class': 'date-mask'}),
+            # 'condutor2_cpf' Sobrescrito acima
+            'condutor2_cnh': forms.TextInput(attrs={'class': 'uppercase-input'}),
+            'condutor2_validade_cnh': forms.TextInput(attrs={'placeholder': 'DD/MM/AAAA', 'class': 'date-mask'}),
+            'condutor2_email': forms.EmailInput(),
+            'condutor2_telefone': forms.TextInput(attrs={'placeholder': '(00) 0.0000-0000', 'class': 'phone-mask-celular'}),
+
+            # Condutor Adicional 3 (condutor3_)
+            'condutor3_nome': forms.TextInput(attrs={'class': 'uppercase-input'}),
+            'condutor3_data_nasc': forms.TextInput(attrs={'placeholder': 'DD/MM/AAAA', 'class': 'date-mask'}),
+            # 'condutor3_cpf' Sobrescrito acima
+            'condutor3_cnh': forms.TextInput(attrs={'class': 'uppercase-input'}),
+            'condutor3_validade_cnh': forms.TextInput(attrs={'placeholder': 'DD/MM/AAAA', 'class': 'date-mask'}),
+            'condutor3_email': forms.EmailInput(),
+            'condutor3_telefone': forms.TextInput(attrs={'placeholder': '(00) 0.0000-0000', 'class': 'phone-mask-celular'}),
+
         }
     
+    # --- MÉTODOS CLEAN PARA CPF/CNPJ DO CONDUTOR ---
+
     # *** MÉTODO CLEAN PARA O CPF PRINCIPAL (IGNORA MÁSCARA, VALIDA ALGORITMO) ***
     def clean_cpf(self):
         """
         Limpa a máscara do CPF principal e garante que ele tenha 11 dígitos para o Model.
-        Isso anula a validação de max_length do ModelForm/Model que falha com a máscara (14 digitos).
         """
         cpf = self.cleaned_data.get('cpf')
         if not cpf:
@@ -289,32 +326,38 @@ class ClienteManutencaoForm(forms.ModelForm):
         
         cpf_limpo = re.sub(r'[^\d]', '', str(cpf)) 
         
-        # Mantém a validação do algoritmo, apenas para garantir a integridade do dado.
         if not validate_cpf_algorithm(cpf_limpo):
-            # Este erro só deve ocorrer se o valor original no banco for inválido.
             raise forms.ValidationError('CPF principal inválido. Contate o suporte.')
             
         return cpf_limpo 
 
-    # *** MÉTODO CLEAN PARA O CPF/CNPJ DO CONDUTOR (IGNORA MÁSCARA, VALIDA CPF OU CNPJ) ***
-    def clean_condutor_cpf(self):
-        """
-        Contorna a validação de max_length (11) e aplica a lógica CPF ou CNPJ (14).
-        Retorna o valor limpo (somente dígitos) para o Model.
-        """
-        condutor_cpf = self.cleaned_data.get('condutor_cpf')
+    # --- FUNÇÃO DE VALIDAÇÃO REUTILIZÁVEL PARA CONDUTORES ---
+    def validate_condutor_cpf(self, fieldname):
+        condutor_cpf = self.cleaned_data.get(fieldname)
         if condutor_cpf:
-            # Limpa o valor removendo pontos, traços, etc.
             cpf_cnpj_limpo = re.sub(r'[^\d]', '', str(condutor_cpf))
             
             # Validação: Verifica o tamanho e aplica a validação de algoritmo apropriada
             if len(cpf_cnpj_limpo) == 11 and not validate_cpf_algorithm(cpf_cnpj_limpo):
-                raise forms.ValidationError('CPF do Condutor inválido.')
+                # Usamos o nome do campo para dar feedback específico
+                raise forms.ValidationError(f'CPF do {fieldname.replace("_cpf", "").capitalize()} inválido.')
             elif len(cpf_cnpj_limpo) == 14 and not validate_cnpj_algorithm(cpf_cnpj_limpo):
-                raise forms.ValidationError('CNPJ do Condutor inválido.')
+                raise forms.ValidationError(f'CNPJ do {fieldname.replace("_cpf", "").capitalize()} inválido.')
             elif len(cpf_cnpj_limpo) not in (11, 14) and len(cpf_cnpj_limpo) > 0:
-                 raise forms.ValidationError('CPF/CNPJ do Condutor deve ter 11 ou 14 dígitos.')
+                 raise forms.ValidationError(f'CPF/CNPJ do {fieldname.replace("_cpf", "").capitalize()} deve ter 11 ou 14 dígitos.')
             
             return cpf_cnpj_limpo
             
-        return condutor_cpf # Retorna o valor original (None ou '') se não foi preenchido
+        return condutor_cpf
+
+    # *** MÉTODO CLEAN PARA CONDUTOR 1 ***
+    def clean_condutor_cpf(self):
+        return self.validate_condutor_cpf('condutor_cpf')
+    
+    # *** MÉTODO CLEAN PARA CONDUTOR 2 (NOVO) ***
+    def clean_condutor2_cpf(self):
+        return self.validate_condutor_cpf('condutor2_cpf')
+        
+    # *** MÉTODO CLEAN PARA CONDUTOR 3 (NOVO) ***
+    def clean_condutor3_cpf(self):
+        return self.validate_condutor_cpf('condutor3_cpf')
