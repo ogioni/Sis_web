@@ -38,15 +38,10 @@
          alt="Logotipo Lider Drive">
 {% endif %}
         </div>
-        
+        git checkout cadastro-dinamico
         {# A view vai nos mandar o 'user' logado #}
         <h1>Bem-vindo à sua Área Exclusiva, {{ user.first_name|default:user.username }}!</h1>
-        
-        <p>Você logou com sucesso. Este é o seu painel de cliente.</p>
-        <p>Em breve, você poderá editar sua Ficha Cadastral (Fase 2 e 3) aqui.</p>
-
-        {# Formulário de Logout (usa POST) #}
-        <div class="logout-link">
+        git add .
              <form action="{% url 'logout' %}" method="post" style="display: inline;">
                {% csrf_token %}
                <button type="submit" class="link-button">Sair do Sistema</button>
