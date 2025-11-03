@@ -1,531 +1,359 @@
-# templates/clientes/ficha_cadastral.html
-{% extends "clientes/base_cliente.html" %}
+<!--templates/clientes/cadastro_dinamico.html-->
+
 {% load widget_tweaks %}
 {% load static %}
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <title>{{ page_title|default:"Novo Cadastro" }} - {{ site_config.nome_empresa|default:"Lider Drive" }}</title>
+    <style>
+        /* --- ESTILOS VISUAIS --- */
+        body { font-family: sans-serif; background-color: #f4f4f4; margin: 0; padding: 20px;}
+        .container { max-width: 900px; margin: 20px auto; background-color: #fff; padding: 2.5rem; border-radius: 8px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+        .branding { display: flex; flex-direction: column; align-items: center; margin-bottom: 2rem; }
+        .branding img { width: auto; margin-bottom: 15px; max-height: 100px; max-width: 250px;}
+        .branding .auth-title { color: #0056b3; font-size: 1.5em; font-weight: bold; margin: 0; }
+        
+        fieldset { border: 1px solid #ccc; border-radius: 4px; padding: 20px; margin-bottom: 20px; }
+        legend { font-weight: bold; font-size: 1.2em; color: #0056b3; padding: 0 10px; }
+        
+        /* Grids padronizadas */
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; }
+        .verificacao-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; max-width: 700px; margin: 10px auto; }
+        
+        .form-row { display: flex; flex-direction: column; }
+        .form-row label { font-size: 0.9em; margin-bottom: 5px; color: #555; font-weight: bold; text-align: left; }
+        .form-row input, .form-row select { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+        .submit-row { text-align: center; margin-top: 20px; }
+        .submit-row button { padding: 12px 30px; font-size: 1.1em; background-color: #38a169; color: white; border: none; border-radius: 44px; cursor: pointer; font-weight: bold; }
+        
+        .full-width { grid-column: 1 / -1; }
+        .uppercase-input { text-transform: uppercase; }
+        .lowercase-input { text-transform: lowercase; }
 
-{% block title %}Minha Ficha Cadastral{% endblock title %}
-{% block content_title %}Minha Ficha Cadastral (Edição){% endblock content_title %}
+        .legenda-obrigatorios { font-size: 0.85em; color: #888; text-align: left; margin: 10px 0 20px 0; padding-left: 20px; }
+        .legenda-obrigatorios strong { color: #d9534f; font-weight: bold; }
 
-{% block content %}
+        .label-container { display: flex; justify-content: flex-start; align-items: baseline; }
+        .validation-message { font-size: 0.85em; font-weight: bold; margin-left: 10px; color: red; display: inline; }
+        .errorlist { color: red; list-style: none; padding: 0; margin: 0 0 0 10px; font-size: 0.85em; font-weight: bold; display: inline; }
+        
+        /* Estilos de Verificação */
+        #bloco_verificacao { text-align: center; }
+        #bloco_verificacao .form-row input { max-width: 350px; margin: 10px auto; text-align: center; font-size: 1.1em; padding: 12px; width: 100%; }
+        #bloco_verificacao .submit-row button { background-color: #0056b3; }
+        #bloco_verificacao .submit-row button:disabled { background-color: #ccc; cursor: not-allowed; }
 
-    {% if messages %}
-        <ul class="messagelist">
-            {% for message in messages %}
-                <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
-            {% endfor %}
-        </ul>
-    {% endif %}
+        #verificacao_resultado { display: none; padding: 15px; margin: 20px auto; max-width: 80%; border-radius: 4px; font-weight: bold; text-align: center; line-height: 1.6; }
+        .resultado-sucesso { background-color: #d4edda; color: #155724; }
+        .resultado-aviso { background-color: #fff3cd; color: #856404; }
+        .resultado-erro { background-color: #f8d7da; color: #721c24; }
+        
+        .hidden-form { display: none; }
+        
+        /* Responsividade para a verificação */
+        @media (max-width: 600px) { .verificacao-grid { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
 
-    <form method="post" enctype="multipart/form-data" class="ficha-form">
-        {% csrf_token %}
-
-        {% if form.non_field_errors %}
-            <div class="errornote">
-                {% for error in form.non_field_errors %}
-                    {{ error }}
-                    {% endfor %}
+    <div class="container">
+        <form method="POST" id="form_cadastro_principal">
+            {% csrf_token %}
+            
+            <div class="branding">
+                {# [MARCA DINÂMICA] Logo da Empresa #}
+                {% if site_config and site_config.logo %}
+                    <img src="{{ site_config.logo.url }}" alt="Logotipo {{ site_config.nome_empresa|default:"Lider Drive" }}">
+                {% else %}
+                    <img src="{% static 'logo.png' %}" alt="Logotipo Lider Drive">
+                {% endif %}
+                
+                <p class="auth-title">NOVO CADASTRO</p>
             </div>
-        {% endif %}
 
-        <div class="form-sections">
-
-            {# ==================================================== #}
-            {# 1. DADOS PESSOAIS E HABILITAÇÃO #}
-            {# ==================================================== #}
-            <fieldset>
-                <legend>1. Dados Pessoais e Habilitação</legend>
-                <div class="form-grid-3-col">
-                    <div class="form-row full-width">
-                        <label for="{{ form.nome_completo.id_for_label }}">{{ form.nome_completo.label }}:</label>
-                        {% render_field form.nome_completo class+="form-control uppercase-input" %}
-                        {{ form.nome_completo.errors }} {# <--- ERRO MOVIDO #}
-                    </div>
-
-                    <div class="form-row">
-                        <label for="{{ form.data_nascimento.id_for_label }}">{{ form.data_nascimento.label }}:</label>
-                        {% render_field form.data_nascimento class+="form-control date-mask" %}
-                        {{ form.data_nascimento.errors }}
-                    </div>
-                    <div class="form-row">
-                        <label for="{{ form.cpf.id_for_label }}">{{ form.cpf.label }}:</label>
-                        {% render_field form.cpf class+="form-control cpf-mask" readonly="readonly" %}
-                        {{ form.cpf.errors }}
-                    </div>
-                    <div class="form-row">
-                        <label for="{{ form.rg.id_for_label }}">{{ form.rg.label }}:</label>
-                        {% render_field form.rg class+="form-control uppercase-input" %}
-                        {{ form.rg.errors }}
-                    </div>
-
-                    <div class="form-row">
-                        <label for="{{ form.rg_orgao_expeditor.id_for_label }}">{{ form.rg_orgao_expeditor.label }}:</label>
-                        {% render_field form.rg_orgao_expeditor class+="form-control uppercase-input" %}
-                        {{ form.rg_orgao_expeditor.errors }}
-                    </div>
-                    <div class="form-row">
-                        <label for="{{ form.rg_uf.id_for_label }}">{{ form.rg_uf.label }}:</label>
-                        {% render_field form.rg_uf class+="form-control" %}
-                        {{ form.rg_uf.errors }}
-                    </div>
-                    <div class="form-row">
-                        <label for="{{ form.estado_civil.id_for_label }}">{{ form.estado_civil.label }}:</label>
-                        {% render_field form.estado_civil class+="form-control" %}
-                        {{ form.estado_civil.errors }}
-                    </div>
-                    {# CAMPOS CNH E VALIDADE #}
-                    <div class="form-row">
-                        <label for="{{ form.cnh.id_for_label }}">{{ form.cnh.label }}:</label>
-                        {% render_field form.cnh class+="form-control uppercase-input" %}
-                        {{ form.cnh.errors }}
-                    </div>
-                    <div class="form-row">
-                        <label for="{{ form.validade_cnh.id_for_label }}">{{ form.validade_cnh.label }}:</label>
-                        {% render_field form.validade_cnh class+="form-control date-mask" %}
-                        {{ form.validade_cnh.errors }}
-                    </div>
-                </div>
-            </fieldset>
-
-            {# ======================================= #}
-            {# 2. FILIAÇÃO #}
-            {# ========================================= #}
-            <fieldset>
-                <legend>2. Filiação</legend>
-                <div class="form-grid-2-col">
-                    <div class="form-row">
-                        <label for="{{ form.nome_mae.id_for_label }}">{{ form.nome_mae.label }}:</label>
-                        {% render_field form.nome_mae class+="form-control uppercase-input" %}
-                        {{ form.nome_mae.errors }}
-                    </div>
-                    <div class="form-row">
-                        <label for="{{ form.nome_pai.id_for_label }}">{{ form.nome_pai.label }}:</label>
-                        {% render_field form.nome_pai class+="form-control uppercase-input" %}
-                        {{ form.nome_pai.errors }}
-                    </div>
-                </div>
-            </fieldset>
-
-
-            {# ========================================= #}
-            {# 3. CONTATO #}
-            {# ========================================= #}
-            <fieldset>
-                <legend>3. Contato</legend>
-                <div class="form-grid-3-col">
-                    <div class="form-row">
-                        <label for="{{ form.email.id_for_label }}">{{ form.email.label }}:</label>
-                        {% render_field form.email class+="form-control" readonly="readonly" %}
-                        {{ form.email.errors }}
-                    </div>
-                    <div class="form-row">
-                        <label for="{{ form.celular.id_for_label }}">{{ form.celular.label }}:</label>
-                        {% render_field form.celular class+="form-control phone-mask" %}
-                        {{ form.celular.errors }}
-                    </div>
-                    <div class="form-row">
-                        <label for="{{ form.telefone.id_for_label }}">{{ form.telefone.label }}:</label>
-                        {% render_field form.telefone class+="form-control phone-mask" %}
-                        {{ form.telefone.errors }}
-                    </div>
-                </div>
-            </fieldset>
-
-            {# ========================================= #}
-            {# 4. ENDEREÇO RESIDENCIAL #}
-            {# ========================================= #}
-            <fieldset>
-                <legend>4. Endereço Residencial</legend>
-                <div class="form-grid-endereco">
-                    <div class="form-row">
-                        <label for="{{ form.cep_residencial.id_for_label }}">{{ form.cep_residencial.label }}:</label>
-                        {% render_field form.cep_residencial class+="form-control cep-mask" %}
-                        {{ form.cep_residencial.errors }}
-                    </div>
-                    <div class="form-row">
-                        <label for="{{ form.endereco_residencial.id_for_label }}">{{ form.endereco_residencial.label }}:</label>
-                        {% render_field form.endereco_residencial class+="form-control uppercase-input" %}
-                        {{ form.endereco_residencial.errors }}
-                    </div>
-                    <div class="form-row">
-                        <label for="{{ form.numero_residencial.id_for_label }}">{{ form.numero_residencial.label }}:</label>
-                        {% render_field form.numero_residencial class+="form-control" %}
-                        {{ form.numero_residencial.errors }}
-                    </div>
-                    <div class="form-row">
-                        <label for="{{ form.complemento_residencial.id_for_label }}">{{ form.complemento_residencial.label }}:</label>
-                        {% render_field form.complemento_residencial class+="form-control uppercase-input" %}
-                        {{ form.complemento_residencial.errors }}
-                    </div>
-                </div> 
-                <div class="form-grid-3-col" style="margin-top: 20px;">
-                    <div class="form-row">
-                        <label for="{{ form.bairro_residencial.id_for_label }}">{{ form.bairro_residencial.label }}:</label>
-                        {% render_field form.bairro_residencial class+="form-control uppercase-input" %}
-                        {{ form.bairro_residencial.errors }}
-                    </div>
-                    <div class="form-row">
-                        <label for="{{ form.cidade_residencial.id_for_label }}">{{ form.cidade_residencial.label }}:</label>
-                        {% render_field form.cidade_residencial class+="form-control uppercase-input" %}
-                        {{ form.cidade_residencial.errors }}
-                    </div>
-                    <div class="form-row">
-                        <label for="{{ form.estado_residencial.id_for_label }}">{{ form.estado_residencial.label }}:</label>
-                        {% render_field form.estado_residencial class+="form-control uppercase-input" %}
-                        {{ form.estado_residencial.errors }}
-                    </div>
-                </div>
-            </fieldset>
-
-            {# ========================================= #}
-            {# 5. DADOS PROFISSIONAIS #}
-            {# ========================================= #}
-            <fieldset>
-                <legend>5. Dados Profissionais</legend>
+            <fieldset id="bloco_verificacao">
+                <legend>Identificação</legend>
                 
-                {# PRIMEIRO BLOCO: DADOS DA EMPRESA E TELEFONE COMERCIAL #}
-                <div class="form-grid-4-col">
+                <div class="verificacao-grid">
                     <div class="form-row">
-                        <label for="{{ form.empresa.id_for_label }}">{{ form.empresa.label }}:</label>
-                        {% render_field form.empresa class+="form-control uppercase-input" %}
-                        {{ form.empresa.errors }}
+                        <label for="documento_input" style="text-align: center;">CPF ou CNPJ</label>
+                        <input type="text" id="documento_input" name="documento_input" placeholder="000.000.000-00">
+                        <span id="doc_validation_message" class="validation-message" style="margin: 5px auto 0 auto;"></span>
                     </div>
+                    
                     <div class="form-row">
-                        <label for="{{ form.cargo.id_for_label }}">{{ form.cargo.label }}:</label>
-                        {% render_field form.cargo class+="form-control uppercase-input" %}
-                        {{ form.cargo.errors }}
-                    </div>
-                    <div class="form-row">
-                        <label for="{{ form.renda_mensal.id_for_label }}">{{ form.renda_mensal.label }}:</label>
-                        {% render_field form.renda_mensal class+="form-control currency-mask" %}
-                        {{ form.renda_mensal.errors }}
-                    </div>
-                    <div class="form-row">
-                        <label for="{{ form.telefone_comercial.id_for_label }}">{{ form.telefone_comercial.label }}:</label>
-                        {% render_field form.telefone_comercial class+="form-control phone-mask" %}
-                        {{ form.telefone_comercial.errors }}
+                        <label for="email_input" style="text-align: center;">Seu E-mail</label>
+                        <input type="email" id="email_input" name="email_input" placeholder="seuemail@dominio.com" class="lowercase-input">
+                        <span id="email_validation_message" class="validation-message" style="margin: 5px auto 0 auto;"></span>
                     </div>
                 </div>
 
-                {# SEGUNDO BLOCO: ENDEREÇO COMERCIAL (LAYOUT COESO) #}
-                <h4 style="margin-top: 30px;">Endereço Comercial</h4>
-                <div class="form-grid-endereco">
-                    <div class="form-row">
-                        <label for="{{ form.cep_comercial.id_for_label }}">{{ form.cep_comercial.label }}:</label>
-                        {% render_field form.cep_comercial class+="form-control cep-mask" %}
-                        {{ form.cep_comercial.errors }}
-                    </div>
-                    <div class="form-row">
-                        <label for="{{ form.endereco_comercial.id_for_label }}">{{ form.endereco_comercial.label }}:</label>
-                        {% render_field form.endereco_comercial class+="form-control uppercase-input" %}
-                        {{ form.endereco_comercial.errors }}
-                    </div>
-                    <div class="form-row">
-                        <label for="{{ form.numero_comercial.id_for_label }}">{{ form.numero_comercial.label }}:</label>
-                        {% render_field form.numero_comercial class+="form-control" %}
-                        {{ form.numero_comercial.errors }}
-                    </div>
-                    <div class="form-row">
-                        <label for="{{ form.complemento_comercial.id_for_label }}">{{ form.complemento_comercial.label }}:</label>
-                        {% render_field form.complemento_comercial class+="form-control uppercase-input" %}
-                        {{ form.complemento_comercial.errors }}
-                    </div>
-                </div>
-
-                <div class="form-grid-3-col" style="margin-top: 20px;">
-                    <div class="form-row">
-                        <label for="{{ form.bairro_comercial.id_for_label }}">{{ form.bairro_comercial.label }}:</label>
-                        {% render_field form.bairro_comercial class+="form-control uppercase-input" %}
-                        {{ form.bairro_comercial.errors }}
-                    </div>
-                    <div class="form-row">
-                        <label for="{{ form.cidade_comercial.id_for_label }}">{{ form.cidade_comercial.label }}:</label>
-                        {% render_field form.cidade_comercial class+="form-control uppercase-input" %}
-                        {{ form.cidade_comercial.errors }}
-                    </div>
-                    <div class="form-row">
-                        <label for="{{ form.estado_comercial.id_for_label }}">{{ form.estado_comercial.label }}:</label>
-                        {% render_field form.estado_comercial class+="form-control uppercase-input" %}
-                        {{ form.estado_comercial.errors }}
-                    </div>
+                <div class="submit-row">
+                    <button type="button" id="btn_verificar_doc">Verificar</button>
                 </div>
             </fieldset>
+            
+            <div id="verificacao_resultado"></div>
 
-            {# ========================================= #}
-            {# 6. REFERÊNCIAS (NOVA SEÇÃO) #}
-            {# ========================================= #}
-            <fieldset>
-                <legend>6. Referências (Pessoal e Bancária)</legend>
-                <h4>Referência Pessoal</h4>
-                <div class="form-grid-2-col">
-                    <div class="form-row">
-                        <label for="{{ form.ref_pessoal_nome.id_for_label }}">{{ form.ref_pessoal_nome.label }}:</label>
-                        {% render_field form.ref_pessoal_nome class+="form-control uppercase-input" %}
-                        {{ form.ref_pessoal_nome.errors }}
-                    </div>
-                    <div class="form-row">
-                        <label for="{{ form.ref_pessoal_telefone.id_for_label }}">{{ form.ref_pessoal_telefone.label }}:</label>
-                        {% render_field form.ref_pessoal_telefone class+="form-control phone-mask" %}
-                        {{ form.ref_pessoal_telefone.errors }}
-                    </div>
-                </div>
+            <div id="form_cadastro_completo" class="hidden-form">
                 
-                <h4 style="margin-top: 30px;">Referência Bancária</h4>
-                <div class="form-grid-3-col">
-                    <div class="form-row">
-                        <label for="{{ form.ref_bancaria_banco.id_for_label }}">{{ form.ref_bancaria_banco.label }}:</label>
-                        {% render_field form.ref_bancaria_banco class+="form-control uppercase-input" %}
-                        {{ form.ref_bancaria_banco.errors }}
+                <fieldset>
+                    <legend>Dados Pessoais (Formulário PF)</legend>
+                    
+                    {% if form.non_field_errors %}
+                        {% for error in form.non_field_errors %}
+                            <p class="errorlist" style="text-align: center; background-color: #ffdddd; padding: 10px; border-radius: 4px; display: block;">{{ error }}</p>
+                        {% endfor %}
+                    {% endif %}
+
+                    
+                    {# Aqui vai todo o miolo do formulário FichaCadastralClienteForm #}
+                    <div class="form-grid">
+                        <div class="form-row full-width">
+                            <label for="{{ form.nome_completo.id_for_label }}">{{ form.nome_completo.label }}:</label>
+                            {% render_field form.nome_completo class+="form-control uppercase-input" %}
+                        </div>
+                        <div class="form-row">
+                            <label for="{{ form.data_nascimento.id_for_label }}">{{ form.data_nascimento.label }}:</label>
+                            {% render_field form.data_nascimento class+="form-control date-mask" %}
+                        </div>
+                        <div class="form-row">
+                            <label for="{{ form.cpf.id_for_label }}">{{ form.cpf.label }}:</label>
+                            {% render_field form.cpf class+="form-control cpf-mask" readonly="readonly" %}
+                        </div>
+                        <div class="form-row">
+                            <label for="{{ form.rg.id_for_label }}">{{ form.rg.label }}:</label>
+                            {% render_field form.rg class+="form-control uppercase-input" %}
+                        </div>
+                        <div class="form-row">
+                            <label for="{{ form.rg_orgao_expeditor.id_for_label }}">{{ form.rg_orgao_expeditor.label }}:</label>
+                            {% render_field form.rg_orgao_expeditor class+="form-control uppercase-input" %}
+                        </div>
+                        <div class="form-row">
+                            <label for="{{ form.rg_uf.id_for_label }}">{{ form.rg_uf.label }}:</label>
+                            {% render_field form.rg_uf class+="form-control" %}
+                        </div>
+                        <div class="form-row">
+                            <label for="{{ form.estado_civil.id_for_label }}">{{ form.estado_civil.label }}:</label>
+                            {% render_field form.estado_civil class+="form-control" %}
+                        </div>
+                        <div class="form-row full-width">
+                            <label for="{{ form.nome_mae.id_for_label }}">{{ form.nome_mae.label }}:</label>
+                            {% render_field form.nome_mae class+="form-control uppercase-input" %}
+                        </div>
+                        <div class="form-row full-width">
+                            <label for="{{ form.nome_pai.id_for_label }}">{{ form.nome_pai.label }}:</label>
+                            {% render_field form.nome_pai class+="form-control uppercase-input" %}
+                        </div>
                     </div>
-                    <div class="form-row">
-                        <label for="{{ form.ref_bancaria_agencia.id_for_label }}">{{ form.ref_bancaria_agencia.label }}:</label>
-                        {% render_field form.ref_bancaria_agencia class+="form-control" %}
-                        {{ form.ref_bancaria_agencia.errors }}
-                    </div>
-                    <div class="form-row">
-                        <label for="{{ form.ref_bancaria_conta.id_for_label }}">{{ form.ref_bancaria_conta.label }}:</label>
-                        {% render_field form.ref_bancaria_conta class+="form-control" %}
-                        {{ form.ref_bancaria_conta.errors }}
-                    </div>
+                    
+                    <fieldset style="margin-top: 20px;">
+                        <legend>Contato Adicional</legend>
+                        <div class="form-grid" style="grid-template-columns: 1fr 1fr;">
+                            <div class="form-row">
+                                <label for="{{ form.email.id_for_label }}">{{ form.email.label }}:</label>
+                                {% render_field form.email class+="form-control" readonly="readonly" %}
+                            </div>
+                            <div class="form-row">
+                                <label for="{{ form.email_confirm.id_for_label }}">{{ form.email_confirm.label }}:</label>
+                                {% render_field form.email_confirm class+="form-control" %}
+                            </div>
+                            <div class="form-row">
+                                <label for="{{ form.celular.id_for_label }}">{{ form.celular.label }}:</label>
+                                {% render_field form.celular class+="form-control phone-mask-celular" %}
+                            </div>
+                            <div class="form-row">
+                                <label for="{{ form.telefone.id_for_label }}">{{ form.telefone.label }}:</label>
+                                {% render_field form.telefone class+="form-control phone-mask-fixo" %}
+                            </div>
+                        </div>
+                    </fieldset>
+
+                    <p class="legenda-obrigatorios">Campos com <strong>(*)</strong> são de preenchimento obrigatório.</p>
+                </fieldset>
+            
+                <div class="submit-row" style="text-align: center; margin-top: 30px;">
+                    <button type="submit" id="submit_button">Criar Conta e Validar E-mail</button>
                 </div>
-            </fieldset>
+            </div> </form>
 
-            {# ========================================= #}
-            {# 7. CONDUTORES ADICIONAIS (AGORA COM 3) #}
-            {# ========================================= #}
-            <fieldset>
-                <legend>7. Condutores Adicionais</legend>
-                
-                {# Condutor 1 #}
-                <h4 style="margin-bottom: 15px;">Condutor 1</h4>
-                <div class="form-grid-3-col">
-                    <div class="form-row full-width">
-                        <label for="{{ form.condutor_nome.id_for_label }}">{{ form.condutor_nome.label }}:</label>
-                        {% render_field form.condutor_nome class+="form-control uppercase-input" %}
-                        {{ form.condutor_nome.errors }}
-                    </div>
-                    <div class="form-row">
-                        <label for="{{ form.condutor_data_nasc.id_for_label }}">{{ form.condutor_data_nasc.label }}:</label>
-                        {% render_field form.condutor_data_nasc class+="form-control date-mask" %}
-                        {{ form.condutor_data_nasc.errors }}
-                    </div>
-                    <div class="form-row">
-                        <label for="{{ form.condutor_cpf.id_for_label }}">{{ form.condutor_cpf.label }}:</label>
-                        {% render_field form.condutor_cpf class+="form-control cpf-mask" %}
-                        {{ form.condutor_cpf.errors }}
-                    </div>
-                    <div class="form-row">
-                        <label for="{{ form.condutor_cnh.id_for_label }}">{{ form.condutor_cnh.label }}:</label>
-                        {% render_field form.condutor_cnh class+="form-control uppercase-input" %}
-                        {{ form.condutor_cnh.errors }}
-                    </div>
-                    <div class="form-row">
-                        <label for="{{ form.condutor_validade_cnh.id_for_label }}">{{ form.condutor_validade_cnh.label }}:</label>
-                        {% render_field form.condutor_validade_cnh class+="form-control date-mask" %}
-                        {{ form.condutor_validade_cnh.errors }}
-                    </div>
-                    <div class="form-row">
-                        <label for="{{ form.condutor_email.id_for_label }}">{{ form.condutor_email.label }}:</label>
-                        {% render_field form.condutor_email class+="form-control" %}
-                        {{ form.condutor_email.errors }}
-                    </div>
-                    <div class="form-row">
-                        <label for="{{ form.condutor_telefone.id_for_label }}">{{ form.condutor_telefone.label }}:</label>
-                        {% render_field form.condutor_telefone class+="form-control phone-mask" %}
-                        {{ form.condutor_telefone.errors }}
-                    </div>
-                </div>
-                
-                <hr style="margin: 30px 0; border: 0; border-top: 1px solid #eee;">
-
-                {# Condutor 2 #}
-                <h4 style="margin-bottom: 15px;">Condutor 2</h4>
-                <div class="form-grid-3-col">
-                    <div class="form-row">
-                        <label for="{{ form.condutor2_nome.id_for_label }}">
-                            {{ form.condutor2_nome.label }}:
-                            {% if form.condutor2_nome.errors %}<span style="color:red; font-size: 0.9em; font-weight: normal;"> - {{ form.condutor2_nome.errors|striptags }}</span>{% endif %}
-                        </label>
-                        {% render_field form.condutor2_nome class+="form-control uppercase-input" %}
-                        {{ form.condutor2_nome.errors }}
-                    </div>
-                    <div class="form-row">
-                        <label for="{{ form.condutor2_data_nasc.id_for_label }}">
-                            {{ form.condutor2_data_nasc.label }}:
-                            {% if form.condutor2_data_nasc.errors %}<span style="color:red; font-size: 0.9em; font-weight: normal;"> - {{ form.condutor2_data_nasc.errors|striptags }}</span>{% endif %}
-                        </label>
-                        {% render_field form.condutor2_data_nasc class+="form-control date-mask" %}
-                        {{ form.condutor2_data_nasc.errors }}
-                    </div>
-                    <div class="form-row">
-                        <label for="{{ form.condutor2_cpf.id_for_label }}">
-                            {{ form.condutor2_cpf.label }}:
-                            {% if form.condutor2_cpf.errors %}<span style="color:red; font-size: 0.9em; font-weight: normal;"> - {{ form.condutor2_cpf.errors|striptags }}</span>{% endif %}
-                        </label>
-                        {% render_field form.condutor2_cpf class+="form-control cpf-mask" %}
-                        {{ form.condutor2_cpf.errors }}
-                    </div>
-                    <div class="form-row">
-                        <label for="{{ form.condutor2_cnh.id_for_label }}">{{ form.condutor2_cnh.label }}:</label>
-                        {% render_field form.condutor2_cnh class+="form-control uppercase-input" %}
-                        {{ form.condutor2_cnh.errors }}
-                    </div>
-                    <div class="form-row">
-                        <label for="{{ form.condutor2_validade_cnh.id_for_label }}">{{ form.condutor2_validade_cnh.label }}:</label>
-                        {% render_field form.condutor2_validade_cnh class+="form-control date-mask" %}
-                        {{ form.condutor2_validade_cnh.errors }}
-                    </div>
-                    <div class="form-row">
-                        <label for="{{ form.condutor2_email.id_for_label }}">{{ form.condutor2_email.label }}:</label>
-                        {% render_field form.condutor2_email class+="form-control" %}
-                        {{ form.condutor2_email.errors }}
-                    </div>
-                    <div class="form-row">
-                        <label for="{{ form.condutor2_telefone.id_for_label }}">{{ form.condutor2_telefone.label }}:</label>
-                        {% render_field form.condutor2_telefone class+="form-control phone-mask" %}
-                        {{ form.condutor2_telefone.errors }}
-                    </div>
-                </div>
-
-                <hr style="margin: 30px 0; border: 0; border-top: 1px solid #eee;">
-
-                {# Condutor 3 #}
-                <h4 style="margin-bottom: 15px;">Condutor 3</h4>
-                <div class="form-grid-3-col">
-                    <div class="form-row">
-                        <label for="{{ form.condutor3_nome.id_for_label }}">
-                            {{ form.condutor3_nome.label }}:
-                            {% if form.condutor3_nome.errors %}<span style="color:red; font-size: 0.9em; font-weight: normal;"> - {{ form.condutor3_nome.errors|striptags }}</span>{% endif %}
-                        </label>
-                        {% render_field form.condutor3_nome class+="form-control uppercase-input" %}
-                        {{ form.condutor3_nome.errors }}
-                    </div>
-                    <div class="form-row">
-                        <label for="{{ form.condutor3_data_nasc.id_for_label }}">
-                            {{ form.condutor3_data_nasc.label }}:
-                            {% if form.condutor3_data_nasc.errors %}<span style="color:red; font-size: 0.9em; font-weight: normal;"> - {{ form.condutor3_data_nasc.errors|striptags }}</span>{% endif %}
-                        </label>
-                        {% render_field form.condutor3_data_nasc class+="form-control date-mask" %}
-                        {{ form.condutor3_data_nasc.errors }}
-                    </div>
-                    <div class="form-row">
-                        <label for="{{ form.condutor3_cpf.id_for_label }}">{{ form.condutor3_cpf.label }}:</label>
-                        {% render_field form.condutor3_cpf class+="form-control cpf-mask" %}
-                        {{ form.condutor3_cpf.errors }}
-                    </div>
-                    <div class="form-row">
-                        <label for="{{ form.condutor3_cnh.id_for_label }}">{{ form.condutor3_cnh.label }}:</label>
-                        {% render_field form.condutor3_cnh class+="form-control uppercase-input" %}
-                        {{ form.condutor3_cnh.errors }}
-                    </div>
-                    <div class="form-row">
-                        <label for="{{ form.condutor3_validade_cnh.id_for_label }}">{{ form.condutor3_validade_cnh.label }}:</label>
-                        {% render_field form.condutor3_validade_cnh class+="form-control date-mask" %}
-                        {{ form.condutor3_validade_cnh.errors }}
-                    </div>
-                    <div class="form-row">
-                        <label for="{{ form.condutor3_email.id_for_label }}">{{ form.condutor3_email.label }}:</label>
-                        {% render_field form.condutor3_email class+="form-control" %}
-                        {{ form.condutor3_email.errors }}
-                    </div>
-                    <div class="form-row">
-                        <label for="{{ form.condutor3_telefone.id_for_label }}">{{ form.condutor3_telefone.label }}:</label>
-                        {% render_field form.condutor3_telefone class+="form-control phone-mask" %}
-                        {{ form.condutor3_telefone.errors }}
-                    </div>
-                </div>
-            </fieldset>
-
-
+        <div class="back-link">
+            <a href="{% url 'home' %}">Voltar para o Início</a>
         </div>
-
-        <div class="submit-row" style="text-align: center; margin-top: 30px;">
-            <button type="submit" class="submit-button">Salvar Dados Cadastrais</button>
-        </div>
-    </form>
-
-    {# Scripts para Máscaras e CEP #}
+    </div>
+    
+    {# --- SCRIPTS DE MÁSCARA (NO FIM DO BODY) --- #}
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.mask/1.14.16/jquery.mask.min.js"></script>
     <script src="{% static 'js/mask.js' %}"></script>
     <script>
         $(document).ready(function() {
-            // MÁSCARAS ESTÁTICAS
-            $('.cpf-mask').mask('000.000.000-00');
-            $('.cep-mask').mask('00000-000');
-            $('.date-mask').mask('00/00/0000');
-            $('.currency-mask').mask('0.000.000,00', { reverse: true, placeholder: "0,00" });
-
-            // MÁSCARA CELULAR/FIXO DINÂMICA
-            var phoneMaskBehavior = function (val, e, field, options) {
-                // Se o valor limpo (somente números) tem 11 dígitos, usa o formato de celular.
-                var length = val.replace(/\D/g, '').length;
-                return length > 10 ? '(00) 0.0000-0000' : '(00) 0000-00009'; 
-            };
             
-            // 1. Inicializa a máscara
-            $('.phone-mask').mask(phoneMaskBehavior, {
-                onKeyPress: function(val, e, field, options) {
-                    field.mask(phoneMaskBehavior.apply({}, arguments), options);
+            // --- VARIÁVEL DE ESTADO (PARA RECARGA DE ERRO) ---
+            var showFlagString = "{{ show_form_on_load|default:'false'|lower }}";
+            var showFormOnLoad = (showFlagString === 'true');
+
+            // --- LÓGICA DE RECARGA ---
+            if (showFormOnLoad) {
+                $('#bloco_verificacao').hide();
+                $('#form_cadastro_completo').show();
+                
+                // Reaplica readonly/tabindex nos campos preenchidos pelo POST
+                var campoCpfLegado = $('#{{ form.cpf.id_for_label }}');
+                campoCpfLegado.prop('readonly', true).attr('tabindex', -1).mask('000.000.000-00');
+                
+                var campoEmailLegado = $('#{{ form.email.id_for_label }}');
+                campoEmailLegado.prop('readonly', true).attr('tabindex', -1);
+            }
+            
+            // --- 1. REFERÊNCIAS E MÁSCARA (Verificação Inicial) ---
+            var documentoInput = $('#documento_input');
+            var emailInput = $('#email_input');
+            var docValidationMessage = $('#doc_validation_message');
+            var emailValidationMessage = $('#email_validation_message');
+            var btnVerificar = $('#btn_verificar_doc');
+            var resultadoDiv = $('#verificacao_resultado');
+            var emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            
+            var options = {
+                onKeyPress: function(doc, e, field, options) {
+                    var masks = ['000.000.000-009', '00.000.000/0000-00'];
+                    var mask = (doc.length > 14) ? masks[1] : masks[0];
+                    documentoInput.mask(mask, options);
                 }
+            };
+            documentoInput.mask('000.000.000-009', options);
+            btnVerificar.prop('disabled', true); 
+
+            // ... (Lógica de validação silenciosa) ...
+            function validarCampos() {
+                var doc = documentoInput.val().replace(/\D/g, '');
+                var email = emailInput.val();
+                var docValido = (doc.length == 11 || doc.length == 14);
+                var emailValido = emailRegex.test(email);
+
+                if (docValido && emailValido) {
+                    btnVerificar.prop('disabled', false);
+                } else {
+                    btnVerificar.prop('disabled', true);
+                }
+                docValidationMessage.text('');
+                emailValidationMessage.text('');
+            }
+            documentoInput.on('input keyup', validarCampos);
+            emailInput.on('input keyup', validarCampos);
+
+            // --- BLOQUEIA 'COLAR' ---
+            $('#{{ form.email_confirm.id_for_label }}').on('paste', function(e) {
+                e.preventDefault();
+                var msgSpan = $('#email_confirm_validation_message');
+                msgSpan.text('Colar não é permitido.');
+                setTimeout(function() { msgSpan.text(''); }, 2000);
             });
 
-            // 2. FIX: Para campos preenchidos na edição, força o reajuste da máscara 
-            //    com base no valor existente ao carregar a página.
-            $('.phone-mask').each(function() {
-                if ($(this).val()) {
-                    $(this).trigger('keypress');
+            // --- 3. LÓGICA AJAX (VERIFICAÇÃO) ---
+            function resetResultado() { resultadoDiv.hide().text('').removeClass('resultado-sucesso resultado-aviso resultado-erro'); }
+            function showResultado(tipo, mensagemHtml) { resetResultado(); resultadoDiv.addClass('resultado-' + tipo).html(mensagemHtml).slideDown(); }
+
+            btnVerificar.on('click', function() {
+                var documento = documentoInput.val();
+                var email = emailInput.val();
+                var docLimpo = documento.replace(/\D/g, '');
+                var csrfToken = $('input[name="csrfmiddlewaretoken"]').val();
+                
+                resetResultado(); 
+                docValidationMessage.text('');
+                emailValidationMessage.text('');
+
+                var camposOk = true;
+                if (docLimpo.length !== 11 && docLimpo.length !== 14) {
+                    docValidationMessage.text('CPF ou CNPJ incompleto');
+                    camposOk = false;
                 }
+                if (!emailRegex.test(email)) {
+                    emailValidationMessage.text('Formato de e-mail inválido');
+                    camposOk = false;
+                }
+                if (!camposOk) { return; }
+                
+                btnVerificar.prop('disabled', true).text('Verificando...');
+
+                $.ajax({
+                    url: "{% url 'clientes:verificar_documento_ajax' %}",
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify({ 'documento': documento, 'email': email }),
+                    headers: { 'X-CSRFToken': csrfToken },
+                    
+                    success: function(response) {
+                        
+                        if (response.status === 'exists') {
+                            showResultado('aviso', response.message);
+                            btnVerificar.text('Verificar'); 
+                        
+                        } else if (response.status === 'not_found' && response.doc_type === 'cpf') {
+                            showResultado('sucesso', 'CPF e e-mail válidos. Por favor, complete seu cadastro abaixo.');
+                            $('#bloco_verificacao').slideUp();
+                            
+                            // Preenche e trava campos PF
+                            var campoCpfLegado = $('#{{ form.cpf.id_for_label }}');
+                            campoCpfLegado.val(documento).prop('readonly', true).attr('tabindex', -1).mask('000.000.000-00');
+                            
+                            var campoEmailLegado = $('#{{ form.email.id_for_label }}');
+                            campoEmailLegado.val(email).prop('readonly', true).attr('tabindex', -1);
+                            
+                            $('#{{ form.email_confirm.id_for_label }}').val('').prop('readonly', false);
+                            
+                            $('#form_cadastro_completo').slideDown();
+                        
+                        } else if (response.status === 'not_found_pj') {
+                            showResultado('sucesso', 'CNPJ e e-mail válidos. O cadastro para Pessoa Jurídica será liberado em breve!');
+                            btnVerificar.text('Verificar').prop('disabled', false);
+                        
+                        } else {
+                            showResultado('erro', response.message || 'Erro desconhecido.');
+                            btnVerificar.text('Verificar').prop('disabled', false);
+                        }
+                    },
+                    error: function(xhr) {
+                        let errorMsg = 'Ocorreu um erro ao verificar os dados.';
+                        if (xhr.responseJSON && xhr.responseJSON.message) { errorMsg = xhr.responseJSON.message; }
+                        showResultado('erro', errorMsg);
+                        btnVerificar.text('Verificar').prop('disabled', false);
+                    }
+                });
             });
         });
+        
+        // --- FUNÇÃO DE VALIDAÇÃO JS LEGADO (Nomes) ---
+        function validarNome(inputId, errorSpanId, mensagemErro) {
+            const inputElement = document.getElementById(inputId);
+            if (!inputElement) return; 
+            const errorElement = document.getElementById(errorSpanId);
+            const nome = inputElement.value.trim();
 
-        // ===================================
-        // FUNÇÃO DE BUSCA CEP (VIA CEP)
-        // ===================================
-        const fillAddressFields = function(scope) {
-            const fields = {
-                // Acessa campos com id_cep_residencial, id_cep_comercial, etc.
-                cep: $(`#id_cep_${scope}`), 
-                logradouro: $(`#id_endereco_${scope}`),
-                bairro: $(`#id_bairro_${scope}`),
-                cidade: $(`#id_cidade_${scope}`),
-                estado: $(`#id_estado_${scope}`),
-                numero: $(`#id_numero_${scope}`)
-            };
-            const cep = fields.cep.val().replace(/\D/g, '');
-            if (cep.length === 8) {
-                // Limpa e coloca loading
-                fields.logradouro.val('...');
-                fields.bairro.val('...');
-                fields.cidade.val('...');
-                fields.estado.val('');
-                
-                $.getJSON(`https://viacep.com.br/ws/${cep}/json/`, function(data) {
-                    if (!("erro" in data)) {
-                        fields.logradouro.val(data.logradouro ? data.logradouro.toUpperCase() : '');
-                        fields.bairro.val(data.bairro ? data.bairro.toUpperCase() : '');
-                        fields.cidade.val(data.localidade ? data.localidade.toUpperCase() : '');
-                        fields.estado.val(data.uf);
-                        fields.numero.focus();
-                    } else {
-                        fields.logradouro.val('');
-                        alert(`CEP ${fields.cep.val()} não encontrado.`);
-                    }
-                }).fail(function() {
-                    alert("Erro ao consultar a API de CEP.");
-                });
+            errorElement.textContent = ''; 
+            if (nome === '') { return; } 
+            if (nome.includes('.')) {
+                errorElement.textContent = "Nome não pode conter pontos (.).";
+                return;
             }
-        };
-
-        // BIND DE EVENTOS
-        $("#id_cep_residencial").blur(function() { fillAddressFields('residencial'); });
-        $("#id_cep_comercial").blur(function() { fillAddressFields('comercial'); });
+            const partes = nome.split(' ').filter(part => part !== '');
+            if (partes.length < 2) {
+                errorElement.textContent = mensagemErro;
+            }
+        }
     </script>
 
+
     <style>
-        /* Layout geral do formulário */
-        .ficha-form fieldset { border: 1px solid #ccc; border-radius: 4px; padding: 20px; margin-bottom: 25px; }
-        .ficha-form legend { font-weight: bold; font-size: 1.2em; color: #0056b3; padding: 0 10px; margin-left: -5px; }
-        .ficha-form h4 { font-size: 1em; color: #333; margin-top: 0; } /* Estilo para os subtítulos (Referências) */
+        /* [ATENÇÃO] Este bloco de estilos é usado para grids no modo desktop */
+        .ficha-form fieldset { border: 1px solid #ccc; border-radius: 4px; padding: 20px; margin-bottom: 25px; text-align: left;}
+        .ficha-form legend { font-weight: bold; font-size: 1.2em; color: #0056b3; padding: 0 10px; margin-left: -5px;}
         .ficha-form .form-row { display: flex; flex-direction: column; }
         .ficha-form .form-row label { font-size: 0.9em; margin-bottom: 5px; color: #555; font-weight: bold; }
         .ficha-form .form-control { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
@@ -534,12 +362,18 @@
         .ficha-form .errornote { color: red; margin-bottom: 10px; padding: 10px; border: 1px solid red; border-radius: 4px; }
         .ficha-form .errorlist { color: red; list-style: none; padding-left: 0; margin-top: 5px; font-size: 0.85em; font-weight: bold; }
 
-        /* Grids padronizados */
         .form-grid-1-col { display: grid; grid-template-columns: 1fr; gap: 20px; }
         .form-grid-2-col { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
         .form-grid-3-col { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
         .form-grid-4-col { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
-        .form-grid-endereco { display: grid; grid-template-columns: 1fr 1fr 0.5fr 0.5fr; gap: 20px; }
-    </style>
+        .form-grid-endereco { display: grid; grid-template-columns: 1fr 1fr 0.5fr 0.5fr; gap: 20px; } 
 
+        /* Responsividade para Formulário: Transforma para 1 coluna no mobile */
+        @media (max-width: 600px) {
+            .form-grid-3-col, .form-grid-2-col, .form-grid-endereco {
+                grid-template-columns: 1fr;
+            }
+            .ficha-form .full-width { grid-column: 1 / 1; }
+        }
+    </style>
 {% endblock content %}

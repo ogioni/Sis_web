@@ -1,3 +1,5 @@
+# clientes/views.py
+
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.models import User
 from django.contrib.auth.tokens import default_token_generator
@@ -122,15 +124,21 @@ def cadastro_dinamico_view(request):
     return render(request, 'clientes/cadastro_dinamico.html', context)
 
 
+# ===================================================================
+# FUNÇÃO CORRIGIDA
+# ===================================================================
 @transaction.atomic
 def cadastro_publico_pf(request):
+    
     if request.method == 'POST':
         form = FichaCadastralClienteForm(request.POST)
+        
         if form.is_valid():
             novo_cliente = form.save(commit=False)
             email = form.cleaned_data['email']
             nome = form.cleaned_data['nome_completo']
             username = email
+            
             try:
                 senha_temporaria = get_random_string(length=12)
                 user = User.objects.create_user(username=username, email=email, password=senha_temporaria)
@@ -141,34 +149,46 @@ def cadastro_publico_pf(request):
                 from django.db.utils import IntegrityError
                 msg = "O e-mail ou CPF informado já possui cadastro." if isinstance(e, IntegrityError) else f"Erro desconhecido ao criar conta. ({e})"
                 form.add_error(None, msg)
-                return render(request, 'clientes/cadastro_publico_pf.html', {'form': form})
+                # Se der erro, o 'form' inválido (com a msg de erro) 
+                # será renderizado pela linha 'return render' no final da função.
+            else: 
+                # Este 'else' só executa se o 'try' for bem-sucedido
+                novo_cliente.user = user
+                novo_cliente.save()
 
-            novo_cliente.user = user
-            novo_cliente.save()
+                current_site = get_current_site(request)
+                mail_subject = 'Ative sua conta e crie sua senha - Lider Drive'
+                context = {
+                    'user': user,
+                    'domain': current_site.domain,
+                    'uid': urlsafe_base64_encode(force_bytes(user.pk)),
+                    'token': default_token_generator.make_token(user),
+                    'protocol': 'http',
+                    'site_name': current_site.name,
+                }
+                message = render_to_string('registration/password_reset_email.html', context)
+                to_email = form.cleaned_data['email']
+                send_dynamic_email(mail_subject, message, to_email)
 
-            current_site = get_current_site(request)
-            mail_subject = 'Ative sua conta e crie sua senha - Lider Drive'
-            context = {
-                'user': user,
-                'domain': current_site.domain,
-                'uid': urlsafe_base64_encode(force_bytes(user.pk)),
-                'token': default_token_generator.make_token(user),
-                'protocol': 'http',
-                'site_name': current_site.name,
-            }
-            message = render_to_string('registration/password_reset_email.html', context)
-            to_email = form.cleaned_data['email']
-            send_dynamic_email(mail_subject, message, to_email)
+                return redirect('clientes:cadastro_sucesso')
+        
+        # Se o 'form' (do POST) não for válido, o código simplesmente
+        # continua, e o 'form' com os erros será passado para o context.
 
-            return redirect('clientes:cadastro_sucesso')
-        else:
-            form = FichaCadastralClienteForm()
+    else:
+        # --- ESTA É A CORREÇÃO ---
+        # Se o request for GET, cria um formulário vazio
+        form = FichaCadastralClienteForm()
 
+    # Contexto unificado para GET e POST inválido
     context = {
-        'form': form,
+        'form': form, # A variável 'form' agora sempre existe
         'page_title': 'Crie sua Conta - 1/3',
     }
     return render(request, 'clientes/cadastro_publico_pf.html', context)
+# ===================================================================
+# FIM DA FUNÇÃO CORRIGIDA
+# ===================================================================
 
 
 def cadastro_sucesso(request):

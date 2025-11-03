@@ -1,5 +1,5 @@
-Listagem de caminhos de pasta para o volume M2_Sistema
-O nï¿½mero de sï¿½rie do volume ï¿½ 6C48-B890
+Listagem de caminhos de pasta para o volume Windows
+O n£mero de s‚rie do volume ‚ A0B6-4C19
 C:.
 |   .env
 |   .gitignore
@@ -29,6 +29,8 @@ C:.
 |           0003_remove_cliente_condutor_cnh_and_more.py
 |           0004_alter_cliente_options_cliente_condutor_cnh_and_more.py
 |           0005_cliente_complemento_comercial_and_more.py
+|           0006_cliente_bairro_comercial_cliente_cidade_comercial_and_more.py
+|           0007_cliente_condutor2_cnh_cliente_condutor2_cpf_and_more.py
 |           __init__.py
 |           
 +---config
